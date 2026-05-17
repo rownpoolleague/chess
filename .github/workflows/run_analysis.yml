@@ -3,7 +3,9 @@ name: Run Chess Analysis
 on:
   push:
     paths:
-      - '*.pgn'  # Runs automatically whenever you upload a PGN file
+      - '**/*.pgn'
+      - '*.pgn'
+  workflow_dispatch: # Allows you to trigger it with a button click anytime
 
 jobs:
   analyze:
