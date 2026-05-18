@@ -3,58 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSCC - South Suburban Chess Club</title>
+    <title>SSCC MOBILE</title>
     <style>
         :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --danger: #ef4444; }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px;
-            overflow-x: hidden;
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
         header { background: var(--card); padding: 15px; text-align: center; border-bottom: 1px solid #222; }
-        h1 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; color: var(--accent); }
-
-        .view { display: none; padding: 15px; box-sizing: border-box; animation: fadeIn 0.2s ease; }
+        h1 { margin: 0; font-size: 1.1rem; color: var(--accent); }
+        .view { display: none; padding: 15px; box-sizing: border-box; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Navigation */
         nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; display: flex; border-top: 1px solid #222; z-index: 100; }
-        nav button { 
-            flex: 1; padding: 12px 5px; background: none; border: none; 
-            color: #666; font-size: 0.65rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
-        }
+        nav button { flex: 1; padding: 15px 5px; background: none; border: none; color: #666; font-size: 0.7rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         nav button.active { color: var(--accent); }
-
-        /* Inputs & Buttons */
-        input, select { 
-            width: 100%; padding: 12px; margin: 8px 0; background: #181818; 
-            border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box;
-        }
-        .action-btn { 
-            width: 100%; padding: 15px; background: var(--accent); border: none; 
-            color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; cursor: pointer;
-        }
-
-        /* Player List */
-        .player-row { 
-            background: #0a0a0a; padding: 15px; border-bottom: 1px solid #222; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; cursor: pointer; }
+        .player-row { background: #0a0a0a; padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
         .player-name { font-weight: bold; }
-        .player-elo { color: #888; font-size: 0.9rem; }
-
-        /* Clock Logic */
-        .clock-container { display: flex; flex-direction: column; gap: 10px; height: 70vh; }
-        .clock-face { 
-            flex: 1; display: flex; align-items: center; justify-content: center; 
-            font-size: 4rem; font-family: monospace; background: #111; border-radius: 8px; 
-            transition: 0.1s; border: 2px solid transparent;
-        }
+        .ratings-row { font-size: 0.75rem; color: #888; display: flex; gap: 8px; margin-top: 4px; }
+        .clock-face { height: 32vh; display: flex; align-items: center; justify-content: center; font-size: 4.5rem; font-family: monospace; background: #111; border-radius: 8px; margin-bottom: 10px; border: 2px solid transparent; transition: 0.1s; }
         .clock-face.active { background: #1e293b; border-color: var(--accent); color: #fff; }
-        .clock-face.warning { color: var(--danger); }
     </style>
 </head>
 <body>
@@ -62,61 +28,62 @@
 <header><h1>SSCC MOBILE</h1></header>
 
 <div id="view-players" class="view active">
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-        <h3>MASTER LIST</h3>
-        <button onclick="loadPlayers()" style="background:none; border:none; color:var(--accent); font-size:0.8rem;">REFRESH</button>
-    </div>
-    <input type="text" id="player-search" placeholder="Search by name..." onkeyup="filterPlayers()">
-    <div id="player-list-container">
-        <div style="text-align:center; color:#555; padding:40px;">No players loaded.</div>
-    </div>
+    <h3>PLAYER MASTER LIST</h3>
+    <input type="text" id="player-search" placeholder="Search..." onkeyup="filterPlayers()">
+    <div id="player-list-container"></div>
 </div>
 
 <div id="view-match" class="view">
     <h3>RECORD MATCH</h3>
+    <label style="font-size:0.7rem; color:#888;">TIME CONTROL</label>
+    <select id="format" onchange="updatePlayerDropdowns()">
+        <option value="Regular">Regular (Column K)</option>
+        <option value="Quick">Quick (Column L)</option>
+        <option value="Blitz">Blitz (Column M)</option>
+    </select>
+
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div>
-            <label style="font-size:0.7rem; color:#888;">PLAYER 1</label>
-            <input type="text" id="p1" placeholder="Name">
-            <input type="number" id="p1elo" placeholder="ELO">
+            <select id="p1-select" onchange="updateEloField('p1')"><option value="">Select P1</option></select>
+            <input type="number" id="p1elo" placeholder="P1 ELO" readonly>
         </div>
         <div>
-            <label style="font-size:0.7rem; color:#888;">PLAYER 2</label>
-            <input type="text" id="p2" placeholder="Name">
-            <input type="number" id="p2elo" placeholder="ELO">
+            <select id="p2-select" onchange="updateEloField('p2')"><option value="">Select P2</option></select>
+            <input type="number" id="p2elo" placeholder="P2 ELO" readonly>
         </div>
     </div>
+
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <input type="text" id="white" placeholder="White Player">
         <input type="text" id="black" placeholder="Black Player">
     </div>
-    <input type="text" id="opening" placeholder="Opening/Notes">
+    <input type="text" id="opening" placeholder="Opening">
     <select id="result">
-        <option value="1-0">White Wins (1-0)</option>
-        <option value="0-1">Black Wins (0-1)</option>
-        <option value="0.5-0.5">Draw (½-½)</option>
+        <option value="1-0">1-0</option>
+        <option value="0-1">0-1</option>
+        <option value="0.5-0.5">½-½</option>
     </select>
-    <button class="action-btn" onclick="submitMatch()">SUBMIT DATA</button>
+    <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
 </div>
 
 <div id="view-clock" class="view">
-    <div class="clock-container">
-        <div id="black-timer" class="clock-face" onclick="switchClock('white')">05:00</div>
-        <div id="white-timer" class="clock-face active" onclick="switchClock('black')">05:00</div>
-        <div style="display:flex; gap:10px;">
-            <button class="action-btn" style="background:#333; flex:1;" onclick="resetClock()">RESET</button>
-            <button id="pause-btn" class="action-btn" style="background:#333; flex:1;" onclick="pauseClock()">START</button>
-        </div>
+    <div id="black-timer" class="clock-face" onclick="switchClock('white')">05:00</div>
+    <div id="white-timer" class="clock-face active" onclick="switchClock('black')">05:00</div>
+    <div style="display:flex; gap:10px;">
+        <button class="action-btn" style="background:#333; flex:1;" onclick="resetClock()">RESET</button>
+        <button id="pause-btn" class="action-btn" style="background:#333; flex:1;" onclick="pauseClock()">START</button>
     </div>
 </div>
 
 <div id="view-admin" class="view">
     <h3>ADD PLAYER</h3>
-    <p style="font-size:0.8rem; color:#888;">Adds to Column J in the Sheet. Checks for duplicates.</p>
-    <input type="text" id="reg-name" placeholder="Full Name">
-    <input type="number" id="reg-elo" placeholder="Starting ELO (e.g. 1200)">
+    <input type="text" id="reg-name" placeholder="Name">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+        <input type="number" id="reg-elo-reg" placeholder="Reg">
+        <input type="number" id="reg-elo-quick" placeholder="Quick">
+        <input type="number" id="reg-elo-blitz" placeholder="Blitz">
+    </div>
     <button class="action-btn" onclick="registerPlayer()">ADD TO CLUB</button>
-    <div id="reg-status" style="margin-top:15px; text-align:center;"></div>
 </div>
 
 <nav>
@@ -127,134 +94,101 @@
 </nav>
 
 <script>
-    // --- CONFIGURATION ---
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrrn5RB-C7WfavViRv3ASe6vTtng-RHnc05yJ89dNnBPioY2-2tW8V6RHnYcFvd4gQRA/exec';
-    let allPlayers = [];
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwI9YbFUJzr0dO6i_DsCAA_uyd76flIhQQh5pwXsRARaViVm2hv8ZPxfOOzzAmR-yhu/exec';
+    let allPlayers = []; 
 
-    // --- VIEW SWITCHER ---
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
     }
 
-    // --- DATA HANDLING ---
     async function loadPlayers() {
-        const container = document.getElementById('player-list-container');
-        container.innerHTML = '<div style="text-align:center; padding:20px;">Loading from Google...</div>';
-        try {
-            const resp = await fetch(SCRIPT_URL);
-            allPlayers = await resp.json();
-            renderPlayers(allPlayers);
-        } catch (e) {
-            container.innerHTML = '<div style="color:red; text-align:center;">Error loading players.</div>';
-        }
+        const resp = await fetch(SCRIPT_URL);
+        allPlayers = await resp.json();
+        updatePlayerDropdowns();
+        renderList(allPlayers);
     }
 
-    function renderPlayers(data) {
-        const container = document.getElementById('player-list-container');
-        container.innerHTML = data.map(p => `
+    function renderList(list) {
+        document.getElementById('player-list-container').innerHTML = list.map(p => `
             <div class="player-row">
-                <span class="player-name">${p[0]}</span>
-                <span class="player-elo">${p[1]} ELO</span>
-            </div>
-        `).join('');
+                <div>
+                    <div class="player-name">${p[0]}</div>
+                    <div class="ratings-row"><span>R: ${p[1]||'-'}</span> <span>Q: ${p[2]||'-'}</span> <span>B: ${p[3]||'-'}</span></div>
+                </div>
+            </div>`).join('');
+    }
+
+    function updatePlayerDropdowns() {
+        const format = document.getElementById('format').value;
+        let idx = 1; // Default Regular (Col K)
+        if(format === 'Quick') idx = 2;
+        if(format === 'Blitz') idx = 3;
+
+        const options = '<option value="">Select...</option>' + allPlayers.map(p => 
+            `<option value="${p[0]}" data-elo="${p[idx] || ''}">${p[0]}</option>`
+        ).join('');
+        
+        document.getElementById('p1-select').innerHTML = options;
+        document.getElementById('p2-select').innerHTML = options;
+        document.getElementById('p1elo').value = '';
+        document.getElementById('p2elo').value = '';
+    }
+
+    function updateEloField(prefix) {
+        const sel = document.getElementById(prefix + '-select');
+        const elo = document.getElementById(prefix + 'elo');
+        elo.value = sel.options[sel.selectedIndex].getAttribute('data-elo');
     }
 
     function filterPlayers() {
-        const query = document.getElementById('player-search').value.toLowerCase();
-        const filtered = allPlayers.filter(p => p[0].toLowerCase().includes(query));
-        renderPlayers(filtered);
+        const q = document.getElementById('player-search').value.toLowerCase();
+        renderList(allPlayers.filter(p => p[0].toLowerCase().includes(q)));
     }
 
     async function registerPlayer() {
-        const name = document.getElementById('reg-name').value;
-        const elo = document.getElementById('reg-elo').value;
-        if(!name || !elo) return alert("Missing data");
-
-        document.getElementById('reg-status').innerText = "Checking duplicates...";
-        const resp = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'addPlayer', name, elo })
-        });
-        const result = await resp.text();
-        document.getElementById('reg-status').innerText = result;
-        if(result === "Player Added") loadPlayers();
+        const data = {
+            action: 'addPlayer',
+            name: document.getElementById('reg-name').value,
+            reg: document.getElementById('reg-elo-reg').value,
+            quick: document.getElementById('reg-elo-quick').value,
+            blitz: document.getElementById('reg-elo-blitz').value
+        };
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        loadPlayers();
     }
 
     async function submitMatch() {
         const data = {
             action: 'addMatch',
-            p1: document.getElementById('p1').value,
+            p1: document.getElementById('p1-select').value,
             p1elo: document.getElementById('p1elo').value,
-            p2: document.getElementById('p2').value,
+            p2: document.getElementById('p2-select').value,
             p2elo: document.getElementById('p2elo').value,
             white: document.getElementById('white').value,
             black: document.getElementById('black').value,
             opening: document.getElementById('opening').value,
-            result: document.getElementById('result').value
+            result: document.getElementById('result').value,
+            format: document.getElementById('format').value
         };
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-        alert(await resp.text());
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        alert("Match Saved");
     }
 
-    // --- CHESS CLOCK LOGIC ---
-    let timers = { white: 300, black: 300 };
-    let active = null;
-    let ticker = null;
-
-    function switchClock(target) {
-        if (!ticker) pauseClock(); // Auto-start if stopped
-        active = target;
-        document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
-        document.getElementById(target + '-timer').classList.add('active');
-    }
-
+    // CLOCK
+    let timers = { white: 300, black: 300 }, active = null, ticker = null;
+    function switchClock(t) { active = t; if(!ticker) pauseClock(); document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active')); document.getElementById(t + '-timer').classList.add('active'); }
     function pauseClock() {
-        const btn = document.getElementById('pause-btn');
-        if (ticker) {
-            clearInterval(ticker);
-            ticker = null;
-            btn.innerText = "RESUME";
-        } else {
-            btn.innerText = "PAUSE";
-            ticker = setInterval(() => {
-                if (active) {
-                    timers[active]--;
-                    if (timers[active] <= 0) {
-                        timers[active] = 0;
-                        clearInterval(ticker);
-                    }
-                    updateClockDisplay();
-                }
-            }, 1000);
-        }
+        const b = document.getElementById('pause-btn');
+        if(ticker) { clearInterval(ticker); ticker = null; b.innerText = "RESUME"; }
+        else { b.innerText = "PAUSE"; ticker = setInterval(() => { if(active && timers[active] > 0) { timers[active]--; updateClock(); } }, 1000); }
     }
+    function resetClock() { clearInterval(ticker); ticker = null; active = null; timers = { white: 300, black: 300 }; updateClock(); }
+    function updateClock() { ['white','black'].forEach(p => { const m = Math.floor(timers[p]/60), s = timers[p]%60; document.getElementById(p+'-timer').innerText = `${m}:${s<10?'0'+s:s}`; }); }
 
-    function resetClock() {
-        clearInterval(ticker);
-        ticker = null;
-        active = null;
-        timers = { white: 300, black: 300 };
-        document.getElementById('pause-btn').innerText = "START";
-        updateClockDisplay();
-    }
-
-    function updateClockDisplay() {
-        ['white', 'black'].forEach(p => {
-            const m = Math.floor(timers[p] / 60);
-            const s = timers[p] % 60;
-            const el = document.getElementById(p + '-timer');
-            el.innerText = `${m}:${s < 10 ? '0' + s : s}`;
-            if (timers[p] < 30) el.classList.add('warning');
-            else el.classList.remove('warning');
-        });
-    }
-
-    // Auto-load on startup
     window.onload = loadPlayers;
 </script>
-
 </body>
 </html>
