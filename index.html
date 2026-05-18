@@ -275,6 +275,12 @@
     function startHold() { 
         if(!isArmed) return;
         holdTimer = setTimeout(() => { 
+            // Stop the clock ticking when buttons appear
+            if (ticker) {
+                clearInterval(ticker);
+                ticker = null;
+            }
+            
             document.getElementById('clock-overlay').classList.remove('hidden-ui'); 
             document.getElementById('top-bar').classList.remove('hidden-ui');
             document.getElementById('main-nav').classList.remove('hidden-ui');
