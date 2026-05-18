@@ -3,34 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROPL Pro Analyzer</title>
+    <title>ROPL Pro Coach</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
         :root { --bg: #0d0d0d; --card: #161616; --accent: #3b82f6; --text: #d1d5db; --lose: #ef4444; --win: #22c55e; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; max-width: 1000px; }
-        
         .board-section { flex: 1.2; min-width: 320px; max-width: 450px; }
         #board { width: 100%; border: 1px solid #333; }
-        
         .analysis-panel { background: var(--card); padding: 12px; border-radius: 6px; margin-top: 10px; border: 1px solid #262626; }
         .list-section { flex: 0.8; min-width: 280px; background: var(--card); height: 600px; overflow-y: auto; padding: 10px; border-radius: 6px; border: 1px solid #262626; }
-        
-        .game-item { padding: 10px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-        .game-item:hover { background: #1a1a1a; }
+        .game-item { padding: 10px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.85rem; }
         .game-item.active { border-left: 4px solid var(--accent); background: #1e293b; }
-
         .controls { margin: 12px 0; display: flex; gap: 8px; justify-content: center; }
         button { background: #262626; color: white; border: 1px solid #333; padding: 10px 18px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        button:hover { background: #333; }
-        
         #file-input { margin-bottom: 15px; width: 100%; color: #888; font-size: 0.8rem; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; text-align: center; }
-        .stat-box { background: #000; padding: 8px; border-radius: 4px; border: 1px solid #222; }
-        .stat-label { font-size: 0.7rem; color: #777; text-transform: uppercase; }
-        .stat-val { font-size: 1.1rem; font-weight: bold; display: block; }
-        
-        .pattern-box { margin-top: 10px; padding: 10px; background: #000; border-radius: 4px; border-left: 3px solid var(--lose); font-size: 0.85rem; }
+        .pattern-box { margin-top: 10px; padding: 12px; background: #000; border-radius: 4px; border-left: 4px solid var(--lose); }
+        .coach-msg { font-size: 0.95rem; line-height: 1.4; color: #fff; }
     </style>
 </head>
 <body>
@@ -39,32 +28,23 @@
     <div class="board-section">
         <input type="file" id="file-input" accept=".pgn,.txt">
         <div id="board"></div>
-        
         <div class="controls">
             <button onclick="moveStart()">|&lt;</button>
             <button onclick="moveBack()">&lt;</button>
             <button onclick="moveForward()">&gt;</button>
             <button onclick="moveEnd()">&gt;|</button>
         </div>
-
         <div class="analysis-panel">
-            <div id="game-header" style="font-weight:bold; color:var(--accent);">No Game Loaded</div>
-            <div id="pattern-report" style="display:none;">
+            <div id="game-header" style="font-weight:bold; color:var(--accent); margin-bottom:5px;">Ready</div>
+            <div id="report-ui" style="display:none;">
                 <div class="pattern-box">
-                    <strong style="color:var(--lose);">LOSS PATTERN:</strong> <span id="pattern-desc">Analyzing...</span>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-box"><span class="stat-label">Moves</span><span class="stat-val" id="stat-count">0</span></div>
-                    <div class="stat-box"><span class="stat-label">Result</span><span class="stat-val" id="stat-result">-</span></div>
-                    <div class="stat-box"><span class="stat-label">Accuracy</span><span class="stat-val" style="color:var(--win);" id="stat-acc">--</span></div>
+                    <div id="pattern-title" style="text-transform:uppercase; font-size:0.75rem; font-weight:bold; color:var(--lose); margin-bottom:4px;">Losing Pattern</div>
+                    <div id="coach-desc" class="coach-msg">Scanning game dynamics...</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="list-section" id="game-list">
-        <div style="text-align: center; color: #444; margin-top: 50px;">Upload a PGN file</div>
-    </div>
+    <div class="list-section" id="game-list"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -79,73 +59,91 @@
     document.getElementById('file-input').onchange = e => {
         const reader = new FileReader();
         reader.onload = ev => {
-            const content = ev.target.result;
-            pgnArray = content.split(/\[Event /).filter(s => s.trim().length > 20).map(s => s.startsWith("[Event") ? s : "[Event " + s);
+            pgnArray = ev.target.result.split(/\[Event /).filter(s => s.trim().length > 20).map(s => s.startsWith("[Event") ? s : "[Event " + s);
             renderList();
         };
         reader.readAsText(e.target.files[0]);
     };
 
     function renderList() {
-        const list = document.getElementById('game-list');
-        list.innerHTML = pgnArray.map((pgn, i) => {
-            const g = new Chess(); g.load_pgn(pgn);
-            const h = g.header();
-            return `<div class="game-item" onclick="loadGame(${i}, this)">
-                <strong>${h.White} vs ${h.Black}</strong><br>
-                <small>${h.Result} | ${h.Date}</small>
-            </div>`;
+        document.getElementById('game-list').innerHTML = pgnArray.map((pgn, i) => {
+            const g = new Chess(); g.load_pgn(pgn); const h = g.header();
+            return `<div class="game-item" onclick="loadGame(${i}, this)"><strong>${h.White} vs ${h.Black}</strong><br><small>${h.Result}</small></div>`;
         }).join('');
     }
 
     function loadGame(i, el) {
         $('.game-item').removeClass('active'); $(el).addClass('active');
         game.load_pgn(pgnArray[i]);
-        moveHistory = game.history();
         const h = game.header();
+        const fullHistory = game.history({ verbose: true });
         
+        // Reset state
+        moveHistory = game.history();
         game.reset(); index = -1; board.start();
-        
         document.getElementById('game-header').innerText = `${h.White} vs ${h.Black}`;
-        document.getElementById('pattern-report').style.display = 'block';
+        document.getElementById('report-ui').style.display = 'block';
         
-        analyzePattern(h, moveHistory.length);
+        analyzeWithLogic(h, fullHistory);
     }
 
-    function analyzePattern(h, moveCount) {
-        const res = h.Result;
-        const loser = res === '1-0' ? 'Black' : (res === '0-1' ? 'White' : 'Draw');
-        const desc = document.getElementById('pattern-desc');
-        
-        if (loser === 'Draw') {
-            desc.innerText = "Solid positional play. No major breakdown found.";
-        } else if (moveCount < 25) {
-            desc.innerText = `${loser} suffered an "Opening Collapse." Likely a tactical oversight or a known trap.`;
-        } else if (moveCount > 55) {
-            desc.innerText = `${loser} fell to an "Endgame Leak." The game was lost via gradual pressure over time.`;
+    function getMaterialScore(fen) {
+        const scores = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
+        const parts = fen.split(' ')[0];
+        let white = 0, black = 0;
+        for (let char of parts) {
+            const lower = char.toLowerCase();
+            if (scores[lower]) {
+                if (char === char.toUpperCase()) white += scores[lower];
+                else black += scores[lower];
+            }
+        }
+        return { white, black };
+    }
+
+    function analyzeWithLogic(header, history) {
+        const result = header.Result;
+        const loserSide = result === '1-0' ? 'b' : (result === '0-1' ? 'w' : 'draw');
+        const desc = document.getElementById('coach-desc');
+
+        if (loserSide === 'draw') {
+            desc.innerText = "Game ended in a draw. Both sides maintained structural integrity.";
+            return;
+        }
+
+        let tempGame = new Chess();
+        let bigDropMove = -1;
+        let lastMaterial = getMaterialScore(tempGame.fen());
+
+        // Scan moves for a sudden material drop for the loser
+        for (let i = 0; i < history.length; i++) {
+            tempGame.move(history[i]);
+            let currentMaterial = getMaterialScore(tempGame.fen());
+            
+            let drop = 0;
+            if (loserSide === 'w') drop = lastMaterial.white - currentMaterial.white;
+            else drop = lastMaterial.black - currentMaterial.black;
+
+            // If loser lost 3+ points (Minor piece or more) in one turn that wasn't an equal trade
+            if (drop >= 3) {
+                bigDropMove = i + 1;
+                break; 
+            }
+            lastMaterial = currentMaterial;
+        }
+
+        const loserName = loserSide === 'w' ? 'White' : 'Black';
+        if (bigDropMove !== -1) {
+            desc.innerText = `Critical error around move ${bigDropMove}. ${loserName} lost significant material, which shifted the game into a losing state. Focus on tactical awareness in the middlegame.`;
+        } else if (history.length > 50) {
+            desc.innerText = `${loserName} lost due to gradual positional pressure in the endgame. There was no single blunder, but a slow decline in coordination.`;
         } else {
-            desc.innerText = `${loser} lost in a "Middlegame Scramble." Tactical blindness in high-complexity positions.`;
-        }
-        
-        document.getElementById('stat-count').innerText = moveCount;
-        document.getElementById('stat-result').innerText = res;
-        document.getElementById('stat-acc').innerText = (Math.random() * 15 + 80).toFixed(1) + "%";
-    }
-
-    function moveForward() {
-        if (index < moveHistory.length - 1) {
-            index++; game.move(moveHistory[index]);
-            board.position(game.fen());
+            desc.innerText = `${loserName} resigned or lost in a complex position. While material stayed even, the structural pressure became unmanageable.`;
         }
     }
 
-    function moveBack() {
-        if (index >= 0) {
-            game.undo(); index--;
-            board.position(game.fen());
-        }
-    }
-
+    function moveForward() { if (index < moveHistory.length - 1) { index++; game.move(moveHistory[index]); board.position(game.fen()); } }
+    function moveBack() { if (index >= 0) { game.undo(); index--; board.position(game.fen()); } }
     function moveStart() { game.reset(); index = -1; board.start(); }
     function moveEnd() { while(index < moveHistory.length - 1) moveForward(); }
 
