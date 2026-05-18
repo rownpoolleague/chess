@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon.png">
     <title>SSCC MOBILE</title>
     <style>
         :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; --stop: #ef4444; }
@@ -119,6 +123,9 @@
 </nav>
 
 <script>
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwI9YbFUJzr0dO6i_DsCAA_uyd76flIhQQh5pwXsRARaViVm2hv8ZPxfOOzzAmR-yhu/exec';
     let allPlayers = []; 
     let timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0;
