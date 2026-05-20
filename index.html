@@ -18,10 +18,14 @@
         .view.active { display: block; }
         
         nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; display: flex; border-top: 1px solid #222; height: 60px; z-index: 100; }
-        nav button { flex: 1; background: none; border: none; color: #666; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        nav button { flex: 1; background: none; border: none; color: #fff; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         nav button.active { color: var(--accent); }
 
         #view-clock { padding: 0; position: relative; overflow: hidden; height: calc(100vh - 105px); }
+        /* Fullscreen adjustments to fill the complete screen space during a match */
+        #view-clock:fullscreen { height: 100vh; width: 100vw; background: #000; }
+        #view-clock:fullscreen .clock-main { height: 100vh; }
+
         .clock-top-settings { display: grid; grid-template-columns: 1fr 1fr 1fr; background: #000; padding: 5px; border-bottom: 1px solid #222; position: relative; z-index: 10; }
         .clock-top-settings div { font-size: 0.6rem; color: #888; text-align: center; }
         .clock-top-settings input { width: 80%; background: #111; border: 1px solid #333; color: #fff; text-align: center; font-size: 0.8rem; padding: 5px; }
@@ -146,6 +150,14 @@
     let timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0;
     let isArmed = false, holdTimer;
 
+    // Prevent accidental page back gestures/swipes or refreshing during play
+    window.addEventListener('beforeunload', (e) => {
+        if (isArmed) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -162,22 +174,22 @@
     }
 
     function renderList(list) {
-    document.getElementById('player-list-container').innerHTML = list
-        .filter(p => p && p[0] && p[0].trim() !== '') // Skip empty names/rows entirely
-        .map(p => {
-            // Build the stats string dynamically based on what's available
-            let stats = [];
-            if (p[1]) stats.push(`Reg: ${p[1]}`);
-            if (p[2]) stats.push(`Quick: ${p[2]}`);
-            if (p[3]) stats.push(`Blitz: ${p[3]}`);
-            
-            return `
-                <div class="player-row">
-                    <div style="font-weight:bold;">${p[0]}</div>
-                    ${stats.length ? `<div style="font-size:0.7rem;color:#888;">${stats.join(' | ')}</div>` : ''}
-                </div>`;
-        }).join('');
-}
+        document.getElementById('player-list-container').innerHTML = list
+            .filter(p => p && p[0] && p[0].trim() !== '') 
+            .map(p => {
+                let stats = [];
+                if (p[1]) stats.push(`Reg: ${p[1]}`);
+                if (p[2]) stats.push(`Quick: ${p[2]}`);
+                if (p[3]) stats.push(`Blitz: ${p[3]}`);
+                
+                return `
+                    <div class="player-row">
+                        <div style="font-weight:bold;">${p[0]}</div>
+                        ${stats.length ? `<div style="font-size:0.7rem;color:#888;">${stats.join(' | ')}</div>` : ''}
+                    </div>`;
+            }).join('');
+    }
+
     function updatePlayerDropdowns() {
         const f = document.getElementById('format').value;
         let idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
@@ -235,7 +247,6 @@
         timers = { white: base, black: base };
         updateClock();
         
-        // Ensure editable attributes are entirely stripped when active play begins
         document.getElementById('txt-white-time').removeAttribute('contenteditable');
         document.getElementById('txt-black-time').removeAttribute('contenteditable');
         
@@ -243,6 +254,14 @@
         document.getElementById('top-bar').classList.add('hidden-ui');
         document.getElementById('main-nav').classList.add('hidden-ui');
         document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('timed-out'));
+
+        // Request Fullscreen Mode to completely lock browser edges out of reach
+        const clockView = document.getElementById('view-clock');
+        if (clockView.requestFullscreen) {
+            clockView.requestFullscreen().catch(() => {});
+        } else if (clockView.webkitRequestFullscreen) { /* iOS Safari Support */
+            clockView.webkitRequestFullscreen();
+        }
     }
 
     function switchClock(nextPlayer) { 
@@ -328,8 +347,8 @@
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
         
-        document.getElementById('txt-white-time').removeAttribute('contenteditable');
-        document.getElementById('txt-black-time').removeAttribute('contenteditable');
+        document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
+        document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
         
         document.getElementById('clock-overlay').classList.remove('hidden-ui');
         document.getElementById('top-bar').classList.remove('hidden-ui');
@@ -343,6 +362,15 @@
             d.innerText = "0";
         });
         updateClock();
+
+        // Gracefully release fullscreen layout restriction on reset
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
     }
 
     function startHold() { 
@@ -353,7 +381,6 @@
             if (!overlay.classList.contains('hidden-ui')) {
                 if(document.activeElement) document.activeElement.blur();
                 
-                // Hide controls and disable editing entirely mid-game
                 document.getElementById('txt-white-time').removeAttribute('contenteditable');
                 document.getElementById('txt-black-time').removeAttribute('contenteditable');
                 
@@ -369,7 +396,6 @@
                     ticker = null;
                 }
                 
-                // Show controls and dynamically activate editable areas on pause
                 document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
                 document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
                 
