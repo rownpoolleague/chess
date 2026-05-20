@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="icon.png">
     <title>SSCC MOBILE</title>
     <style>
         :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; --stop: #ef4444; }
@@ -32,7 +32,7 @@
         
         .delay-display { font-size: 1.8rem; color: var(--accent); font-weight: bold; height: 2rem; visibility: hidden; }
         .delay-active { visibility: visible; }
-        .main-time { font-size: 6rem; font-family: monospace; color: #333; line-height: 1; }
+        .main-time { font-size: 6rem; font-family: monospace; color: #333; line-height: 1; outline: none; }
         .clock-face.active { background: #111; }
         .clock-face.active .main-time { color: #fff; }
 
@@ -50,14 +50,26 @@
         input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
         .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; }
         .player-row { background: #0a0a0a; padding: 15px; border-bottom: 1px solid #222; }
+
+        /* Confirmation Modal Styling */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
+        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; box-sizing: border-box; }
+        .modal-box p { margin: 0 0 20px 0; font-size: 0.95rem; font-weight: bold; color: #fff; }
+        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <header><h1>SSCC MOBILE</h1></header>
 
+<div id="confirmation-modal" class="modal-overlay">
+    <div class="modal-box">
+        <p>Match Submitted Successfully!</p>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
 <div id="view-players" class="view active">
-    <input type="text" id="player-search" placeholder="Search Players..." onkeyup="filterPlayers()">
     <div id="player-list-container"></div>
 </div>
 
@@ -71,12 +83,9 @@
         <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
         <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
     </div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <input type="text" id="white" placeholder="White Name">
-        <input type="text" id="black" placeholder="Black Name">
-    </div>
     <input type="text" id="opening" placeholder="Opening/Notes">
     <select id="result">
+        <option value="" disabled selected>Choose Winner...</option>
         <option value="1-0">1-0 (White Wins)</option>
         <option value="0-1">0-1 (Black Wins)</option>
         <option value="0.5-0.5">½-½ (Draw)</option>
@@ -86,16 +95,22 @@
 
 <div id="view-clock" class="view">
     <div id="top-bar" class="clock-top-settings">
-        <div>MINS<br><input type="number" id="cfg-time" value="5"></div>
-        <div>INC<br><input type="number" id="cfg-inc" value="0"></div>
+        <div>MINUTES<br><input type="number" id="cfg-time" value="5"></div>
+        <div>INCREMENT<br><input type="number" id="cfg-inc" value="0"></div>
         <div>DELAY<br><input type="number" id="cfg-delay" value="0"></div>
     </div>
     <div class="clock-main">
         <div id="black-timer" class="clock-face" onmousedown="switchClock('white')" ontouchstart="switchClock('white')">
-            <div class="time-stack"><div id="black-delay" class="delay-display">0</div><div class="main-time">05:00</div></div>
+            <div class="time-stack">
+                <div id="black-delay" class="delay-display">0</div>
+                <div id="txt-black-time" class="main-time" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+            </div>
         </div>
         <div id="white-timer" class="clock-face active" onmousedown="switchClock('black')" ontouchstart="switchClock('black')">
-            <div class="time-stack"><div id="white-delay" class="delay-display">0</div><div class="main-time">05:00</div></div>
+            <div class="time-stack">
+                <div id="white-delay" class="delay-display">0</div>
+                <div id="txt-white-time" class="main-time" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+            </div>
         </div>
     </div>
     <div id="unlock-trigger" class="unlock-zone" onmousedown="startHold()" onmouseup="endHold()" ontouchstart="startHold()" ontouchend="endHold()"></div>
@@ -124,8 +139,8 @@
 
 <script>
     if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
+        navigator.serviceWorker.register('sw.js');
+    }
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwI9YbFUJzr0dO6i_DsCAA_uyd76flIhQQh5pwXsRARaViVm2hv8ZPxfOOzzAmR-yhu/exec';
     let allPlayers = []; 
     let timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0;
@@ -154,11 +169,6 @@
             </div>`).join('');
     }
 
-    function filterPlayers() {
-        const q = document.getElementById('player-search').value.toLowerCase();
-        renderList(allPlayers.filter(p => p[0].toLowerCase().includes(q)));
-    }
-
     function updatePlayerDropdowns() {
         const f = document.getElementById('format').value;
         let idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
@@ -181,14 +191,32 @@
     }
 
     async function submitMatch() {
+        const p1Value = document.getElementById('p1-select').value;
+        const p2Value = document.getElementById('p2-select').value;
+
         const d = {
             action: 'addMatch', 
-            p1: document.getElementById('p1-select').value, p1elo: document.getElementById('p1elo').value,
-            p2: document.getElementById('p2-select').value, p2elo: document.getElementById('p2elo').value,
-            white: document.getElementById('white').value, black: document.getElementById('black').value,
+            p1: p1Value, p1elo: document.getElementById('p1elo').value,
+            p2: p2Value, p2elo: document.getElementById('p2elo').value,
+            white: p1Value, black: p2Value,
             opening: document.getElementById('opening').value, result: document.getElementById('result').value, format: document.getElementById('format').value
         };
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+        
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+            document.getElementById('confirmation-modal').style.display = 'flex';
+        } catch(e) {}
+    }
+
+    function closeModal() {
+        document.getElementById('confirmation-modal').style.display = 'none';
+        
+        document.getElementById('p1-select').value = "";
+        document.getElementById('p2-select').value = "";
+        document.getElementById('p1elo').value = "";
+        document.getElementById('p2elo').value = "";
+        document.getElementById('opening').value = "";
+        document.getElementById('result').selectedIndex = 0;
     }
 
     function armClock() {
@@ -197,6 +225,11 @@
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
         updateClock();
+        
+        // Ensure editable attributes are entirely stripped when active play begins
+        document.getElementById('txt-white-time').removeAttribute('contenteditable');
+        document.getElementById('txt-black-time').removeAttribute('contenteditable');
+        
         document.getElementById('clock-overlay').classList.add('hidden-ui');
         document.getElementById('top-bar').classList.add('hidden-ui');
         document.getElementById('main-nav').classList.add('hidden-ui');
@@ -205,6 +238,10 @@
 
     function switchClock(nextPlayer) { 
         if(!isArmed) return;
+        
+        const overlay = document.getElementById('clock-overlay');
+        if (!overlay.classList.contains('hidden-ui')) return;
+        
         if(active && timers[active] <= 0) return;
 
         if(!ticker) {
@@ -249,15 +286,42 @@
 
     function updateClock() {
         ['white','black'].forEach(p => {
+            if (document.activeElement === document.getElementById(`txt-${p}-time`)) return;
+            
             const m = Math.floor(timers[p]/60), s = timers[p]%60;
-            document.querySelector(`#${p}-timer .main-time`).innerText = `${m}:${s<10?'0'+s:s}`;
+            document.getElementById(`txt-${p}-time`).innerText = `${m}:${s<10?'0'+s:s}`;
         });
+    }
+
+    function parseManualTime(player) {
+        const text = document.getElementById(`txt-${player}-time`).innerText.trim();
+        const parts = text.split(':');
+        
+        let totalSeconds = 0;
+        if (parts.length === 2) {
+            const mins = parseInt(parts[0], 10) || 0;
+            const secs = parseInt(parts[1], 10) || 0;
+            totalSeconds = (mins * 60) + secs;
+        } else {
+            totalSeconds = parseInt(text, 10) || 0;
+        }
+        
+        if (totalSeconds >= 0) {
+            timers[player] = totalSeconds;
+            if (totalSeconds > 0) {
+                document.getElementById(`${player}-timer`).classList.remove('timed-out');
+            }
+        }
     }
 
     function resetClock() {
         clearInterval(ticker); ticker = null; active = null; isArmed = false;
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
+        
+        document.getElementById('txt-white-time').removeAttribute('contenteditable');
+        document.getElementById('txt-black-time').removeAttribute('contenteditable');
+        
         document.getElementById('clock-overlay').classList.remove('hidden-ui');
         document.getElementById('top-bar').classList.remove('hidden-ui');
         document.getElementById('main-nav').classList.remove('hidden-ui');
@@ -275,15 +339,35 @@
     function startHold() { 
         if(!isArmed) return;
         holdTimer = setTimeout(() => { 
-            // Stop the clock ticking when buttons appear
-            if (ticker) {
-                clearInterval(ticker);
-                ticker = null;
-            }
+            const overlay = document.getElementById('clock-overlay');
             
-            document.getElementById('clock-overlay').classList.remove('hidden-ui'); 
-            document.getElementById('top-bar').classList.remove('hidden-ui');
-            document.getElementById('main-nav').classList.remove('hidden-ui');
+            if (!overlay.classList.contains('hidden-ui')) {
+                if(document.activeElement) document.activeElement.blur();
+                
+                // Hide controls and disable editing entirely mid-game
+                document.getElementById('txt-white-time').removeAttribute('contenteditable');
+                document.getElementById('txt-black-time').removeAttribute('contenteditable');
+                
+                overlay.classList.add('hidden-ui');
+                document.getElementById('top-bar').classList.add('hidden-ui');
+                document.getElementById('main-nav').classList.add('hidden-ui');
+                if (active && timers[active] > 0) {
+                    startTicker();
+                }
+            } else {
+                if (ticker) {
+                    clearInterval(ticker);
+                    ticker = null;
+                }
+                
+                // Show controls and dynamically activate editable areas on pause
+                document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
+                document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
+                
+                overlay.classList.remove('hidden-ui'); 
+                document.getElementById('top-bar').classList.remove('hidden-ui');
+                document.getElementById('main-nav').classList.remove('hidden-ui');
+            }
         }, 1500); 
     }
     function endHold() { clearTimeout(holdTimer); }
