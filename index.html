@@ -162,13 +162,22 @@
     }
 
     function renderList(list) {
-        document.getElementById('player-list-container').innerHTML = list.map(p => `
-            <div class="player-row">
-                <div style="font-weight:bold;">${p[0]}</div>
-                <div style="font-size:0.7rem;color:#888;">Reg: ${p[1]||'-'} | Quick: ${p[2]||'-'} | Blitz: ${p[3]||'-'}</div>
-            </div>`).join('');
-    }
-
+    document.getElementById('player-list-container').innerHTML = list
+        .filter(p => p && p[0] && p[0].trim() !== '') // Skip empty names/rows entirely
+        .map(p => {
+            // Build the stats string dynamically based on what's available
+            let stats = [];
+            if (p[1]) stats.push(`Reg: ${p[1]}`);
+            if (p[2]) stats.push(`Quick: ${p[2]}`);
+            if (p[3]) stats.push(`Blitz: ${p[3]}`);
+            
+            return `
+                <div class="player-row">
+                    <div style="font-weight:bold;">${p[0]}</div>
+                    ${stats.length ? `<div style="font-size:0.7rem;color:#888;">${stats.join(' | ')}</div>` : ''}
+                </div>`;
+        }).join('');
+}
     function updatePlayerDropdowns() {
         const f = document.getElementById('format').value;
         let idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
