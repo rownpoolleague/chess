@@ -1,10 +1,26 @@
+const CACHE_NAME = 'sscc-v2';
+
 self.addEventListener('install', (e) => {
- e.waitUntil(
-   caches.open('sscc-v1').then((cache) => cache.addAll([
-     './',
-     './index.html'
-   ]))
- );
+  self.skipWaiting(); // Force the waiting service worker to become the active one
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll([
+      './',
+      './index.html'
+    ]))
+  );
+});
+
+self.addEventListener('activate', (e) => {
+  // Clean up old caches that don't match the new version
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
 });
 
 self.addEventListener('fetch', (e) => {
