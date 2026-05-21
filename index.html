@@ -36,7 +36,7 @@
         
         .delay-display { font-size: 1.8rem; color: var(--accent); font-weight: bold; height: 2rem; visibility: hidden; }
         .delay-active { visibility: visible; }
-        .main-time { font-size: 6rem; font-family: monospace; color: #333; line-height: 1; outline: none; }
+        .main-time { font-size: 6rem; font-family: monospace; color: #333; line-height: 1; outline: none; -webkit-user-select: text; user-select: text; pointer-events: auto; }
         .clock-face.active { background: #111; }
         .clock-face.active .main-time { color: #fff; }
 
@@ -150,13 +150,13 @@
        <div id="black-timer" class="clock-face" onpointerdown="switchClock('white', event)">
             <div class="time-stack">
                 <div id="black-delay" class="delay-display">0</div>
-                <div id="txt-black-time" class="main-time" contenteditable="true" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-black-time" class="main-time" contenteditable="true" oninput="handleTimeInput('black')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05:00</div>
             </div>
        </div>
        <div id="white-timer" class="clock-face active" onpointerdown="switchClock('black', event)">
             <div class="time-stack">
                 <div id="white-delay" class="delay-display">0</div>
-                <div id="txt-white-time" class="main-time" contenteditable="true" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-white-time" class="main-time" contenteditable="true" oninput="handleTimeInput('white')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05:00</div>
             </div>
        </div>
     </div>
@@ -192,6 +192,11 @@
 
     window.addEventListener('beforeunload', (e) => { if (isArmed) { e.preventDefault(); e.returnValue = ''; } });
 
+    function handleTimeInput(player) {
+        parseManualTime(player);
+        document.getElementById(`txt-${player}-time`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -199,29 +204,19 @@
     }
 
     async function loadPlayers() {
-    const container = document.getElementById('player-list-container');
-    container.innerHTML = '<div>Loading players...</div>';
-    
-    try {
-        const resp = await fetch(SCRIPT_URL, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!resp.ok) throw new Error('Network response was not ok');
-        
-        allPlayers = await resp.json();
-        updatePlayerDropdowns();
-        renderList(allPlayers);
-        updateTournamentRosterList();
-    } catch (e) {
-        console.error("Fetch failed:", e);
-        container.innerHTML = '<div style="color:var(--stop);">Failed to load. Check connection.</div>';
+        const container = document.getElementById('player-list-container');
+        container.innerHTML = '<div>Loading players...</div>';
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors', headers: { 'Accept': 'application/json' } });
+            if (!resp.ok) throw new Error('Network response was not ok');
+            allPlayers = await resp.json();
+            updatePlayerDropdowns();
+            renderList(allPlayers);
+            updateTournamentRosterList();
+        } catch (e) {
+            container.innerHTML = '<div style="color:var(--stop);">Failed to load. Check connection.</div>';
+        }
     }
-}
 
     function renderList(list) {
         document.getElementById('player-list-container').innerHTML = list
