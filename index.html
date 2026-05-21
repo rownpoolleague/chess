@@ -150,15 +150,15 @@
        <div id="black-timer" class="clock-face" onpointerdown="switchClock('white', event)">
             <div class="time-stack">
                 <div id="black-delay" class="delay-display">0</div>
-                <div id="txt-black-time" class="main-time" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-black-time" class="main-time" contenteditable="true" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
             </div>
-        </div>
-        <div id="white-timer" class="clock-face active" onpointerdown="switchClock('black', event)">
+       </div>
+       <div id="white-timer" class="clock-face active" onpointerdown="switchClock('black', event)">
             <div class="time-stack">
                 <div id="white-delay" class="delay-display">0</div>
-                <div id="txt-white-time" class="main-time" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-white-time" class="main-time" contenteditable="true" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
             </div>
-        </div>
+       </div>
     </div>
     <div id="unlock-trigger" class="unlock-zone" onmousedown="startHold()" onmouseup="endHold()" ontouchstart="startHold()" ontouchend="endHold()"></div>
     <div id="clock-overlay">
@@ -198,14 +198,14 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     }
 
-   async function loadPlayers() {
+    async function loadPlayers() {
     const container = document.getElementById('player-list-container');
     container.innerHTML = '<div>Loading players...</div>';
     
     try {
         const resp = await fetch(SCRIPT_URL, {
             method: 'GET',
-            mode: 'cors', // Ensure this is set to cors
+            mode: 'cors',
             headers: {
                 'Accept': 'application/json'
             }
