@@ -16,7 +16,10 @@
         h1 { margin: 0; font-size: 1rem; color: var(--accent); }
         .view { display: none; padding: 15px; box-sizing: border-box; height: calc(100vh - 105px); overflow-y: auto; }
         .view.active { display: block; }
-        
+        @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
         nav { position: fixed; bottom: 0; width: 100%; background: #0a0a0a; display: flex; border-top: 1px solid #222; height: 60px; z-index: 100; }
         nav button { flex: 1; background: none; border: none; color: #fff; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         nav button.active { color: var(--accent); }
@@ -66,8 +69,14 @@
 
 <div id="confirmation-modal" class="modal-overlay">
     <div class="modal-box">
-        <p>Match Submitted Successfully!</p>
-        <button class="modal-btn" onclick="closeModal()">OK</button>
+        
+        <div id="modal-spinner" style="display:none; margin-bottom:15px;">
+            <div style="border:4px solid #333;border-top:4px solid var(--accent);border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;"></div>
+        </div>
+
+        <p id="modal-text">Processing...</p>
+
+        <button id="modal-btn" class="modal-btn" onclick="closeModal()" style="display:none;">OK</button>
     </div>
 </div>
 
@@ -386,30 +395,68 @@
         document.getElementById(p + 'elo').value = elo;
     }
 
-    async function registerPlayer() {
-        const n = document.getElementById('reg-name');
-        const data = { action: 'addPlayer', name: n.value, reg: document.getElementById('reg-elo-reg').value, quick: document.getElementById('reg-elo-quick').value, blitz: document.getElementById('reg-elo-blitz').value };
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-        loadPlayers();
-    }
+   async function registerPlayer() {
+    showModalLoading("Adding player...");
 
-    async function submitMatch() {
-        const p1Value = document.getElementById('p1-select').value;
-        const p2Value = document.getElementById('p2-select').value;
+    const n = document.getElementById('reg-name');
 
-        const d = {
-            action: 'addMatch', 
-            p1: p1Value, p1elo: document.getElementById('p1elo').value,
-            p2: p2Value, p2elo: document.getElementById('p2elo').value,
-            white: p1Value, black: p2Value,
-            opening: document.getElementById('opening').value, result: document.getElementById('result').value, format: document.getElementById('format').value
-        };
-        
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
-            document.getElementById('confirmation-modal').style.display = 'flex';
-        } catch(e) {}
+    const data = {
+        action: 'addPlayer',
+        name: n.value,
+        reg: document.getElementById('reg-elo-reg').value,
+        quick: document.getElementById('reg-elo-quick').value,
+        blitz: document.getElementById('reg-elo-blitz').value
+    };
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+
+        const text = await res.text();
+
+        if (text.includes("Error")) {
+            showModalSuccess(text);
+        } else {
+            showModalSuccess("Player added successfully!");
+            loadPlayers();
+        }
+
+    } catch (e) {
+        showModalSuccess("Network error");
     }
+}
+   async function submitMatch() {
+    showModalLoading("Submitting match...");
+
+    const p1Value = document.getElementById('p1-select').value;
+    const p2Value = document.getElementById('p2-select').value;
+
+    const d = {
+        action: 'addMatch',
+        p1: p1Value,
+        p1elo: document.getElementById('p1elo').value,
+        p2: p2Value,
+        p2elo: document.getElementById('p2elo').value,
+        white: p1Value,
+        black: p2Value,
+        opening: document.getElementById('opening').value,
+        result: document.getElementById('result').value,
+        format: document.getElementById('format').value
+    };
+
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(d)
+        });
+
+        showModalSuccess("Match submitted successfully!");
+    } catch (e) {
+        showModalSuccess("Network error");
+    }
+}
 
     function closeModal() {
         document.getElementById('confirmation-modal').style.display = 'none';
@@ -584,6 +631,23 @@
     function endHold() { clearTimeout(holdTimer); }
 
     window.onload = loadPlayers;
+    function showModalLoading(text = "Processing...") {
+    document.getElementById('confirmation-modal').style.display = 'flex';
+    document.getElementById('modal-spinner').style.display = 'block';
+    document.getElementById('modal-btn').style.display = 'none';
+    document.getElementById('modal-text').innerText = text;
+}
+
+function showModalSuccess(text = "Done!") {
+    document.getElementById('confirmation-modal').style.display = 'flex';
+    document.getElementById('modal-spinner').style.display = 'none';
+    document.getElementById('modal-btn').style.display = 'block';
+    document.getElementById('modal-text').innerText = text;
+}
+
+function closeModal() {
+    document.getElementById('confirmation-modal').style.display = 'none';
+}
 </script>
 </body>
 </html>
