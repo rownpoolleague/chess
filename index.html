@@ -395,14 +395,12 @@
         document.getElementById(p + 'elo').value = elo;
     }
 
-   async function registerPlayer() {
+async function registerPlayer() {
     showModalLoading("Adding player...");
-
-    const n = document.getElementById('reg-name');
 
     const data = {
         action: 'addPlayer',
-        name: n.value,
+        name: document.getElementById('reg-name').value,
         reg: document.getElementById('reg-elo-reg').value,
         quick: document.getElementById('reg-elo-quick').value,
         blitz: document.getElementById('reg-elo-blitz').value
@@ -421,13 +419,19 @@
         } else {
             showModalSuccess("Player added successfully!");
             loadPlayers();
+
+            // ✅ RESET FORM HERE
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-elo-reg').value = '';
+            document.getElementById('reg-elo-quick').value = '';
+            document.getElementById('reg-elo-blitz').value = '';
         }
 
     } catch (e) {
         showModalSuccess("Network error");
     }
 }
-   async function submitMatch() {
+  async function submitMatch() {
     showModalLoading("Submitting match...");
 
     const p1Value = document.getElementById('p1-select').value;
@@ -453,6 +457,15 @@
         });
 
         showModalSuccess("Match submitted successfully!");
+
+        // ✅ RESET MATCH FORM
+        document.getElementById('p1-select').value = "";
+        document.getElementById('p2-select').value = "";
+        document.getElementById('p1elo').value = "";
+        document.getElementById('p2elo').value = "";
+        document.getElementById('opening').selectedIndex = 0;
+        document.getElementById('result').selectedIndex = 0;
+
     } catch (e) {
         showModalSuccess("Network error");
     }
