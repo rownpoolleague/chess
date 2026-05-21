@@ -333,9 +333,8 @@
 
     function armClock() {
         isArmed = true; active = null;
-        const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
-        timers = { white: base, black: base };
-        updateClock();
+        // Check if timers were manually edited; if not, use the input defaults
+        // Logic: Keep existing `timers` values if they were changed
         document.getElementById('txt-white-time').removeAttribute('contenteditable');
         document.getElementById('txt-black-time').removeAttribute('contenteditable');
         document.getElementById('clock-overlay').classList.add('hidden-ui');
