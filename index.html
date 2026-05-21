@@ -175,15 +175,30 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     }
 
-    async function loadPlayers() {
-        try {
-            const resp = await fetch(SCRIPT_URL);
-            allPlayers = await resp.json();
-            updatePlayerDropdowns();
-            renderList(allPlayers);
-            updateTournamentRosterList();
-        } catch(e) {}
+   async function loadPlayers() {
+    const container = document.getElementById('player-list-container');
+    container.innerHTML = '<div>Loading players...</div>';
+    
+    try {
+        const resp = await fetch(SCRIPT_URL, {
+            method: 'GET',
+            mode: 'cors', // Ensure this is set to cors
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!resp.ok) throw new Error('Network response was not ok');
+        
+        allPlayers = await resp.json();
+        updatePlayerDropdowns();
+        renderList(allPlayers);
+        updateTournamentRosterList();
+    } catch (e) {
+        console.error("Fetch failed:", e);
+        container.innerHTML = '<div style="color:var(--stop);">Failed to load. Check connection.</div>';
     }
+}
 
     function renderList(list) {
         document.getElementById('player-list-container').innerHTML = list.filter(p => p && p[0]).map(p => `<div class="player-row"><div style="font-weight:bold;">${p[0]}</div></div>`).join('');
