@@ -148,18 +148,19 @@
         <div>DELAY<br><input type="number" id="cfg-delay" value="0"></div>
     </div>
     <div class="clock-main">
-        <div id="black-timer" class="clock-face" onmousedown="switchClock('white')" ontouchstart="switchClock('white')">
-            <div class="time-stack">
-                <div id="black-delay" class="delay-display">0</div>
-                <div id="txt-black-time" class="main-time" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
-            </div>
-        </div>
-        <div id="white-timer" class="clock-face active" onmousedown="switchClock('black')" ontouchstart="switchClock('black')">
-            <div class="time-stack">
-                <div id="white-delay" class="delay-display">0</div>
-                <div id="txt-white-time" class="main-time" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
-            </div>
-        </div>
+      <div id="black-timer" class="clock-face" ontouchstart="switchClock('white')">
+    <div class="time-stack">
+        <div id="black-delay" class="delay-display">0</div>
+        <div id="txt-black-time" class="main-time" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+    </div>
+</div>
+
+<div id="white-timer" class="clock-face active" ontouchstart="switchClock('black')">
+    <div class="time-stack">
+        <div id="white-delay" class="delay-display">0</div>
+        <div id="txt-white-time" class="main-time" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+    </div>
+</div>
     </div>
     <div id="unlock-trigger" class="unlock-zone" onmousedown="startHold()" onmouseup="endHold()" ontouchstart="startHold()" ontouchend="endHold()"></div>
     <div id="clock-overlay">
@@ -445,31 +446,39 @@
         }
     }
 
-    function switchClock(nextPlayer) { 
-        if(!isArmed) return;
-        
-        const overlay = document.getElementById('clock-overlay');
-        if (!overlay.classList.contains('hidden-ui')) return;
-        
-        if(active && timers[active] <= 0) return;
+  function switchClock(nextPlayer) {
+    // 1. Force Arming and UI Cleanup on first interaction
+    if (!isArmed) {
+        armClock();
+    }
+    
+    // Immediately hide UI if it's still visible
+    document.getElementById('clock-overlay').classList.add('hidden-ui');
+    document.getElementById('top-bar').classList.add('hidden-ui');
+    document.getElementById('main-nav').classList.add('hidden-ui');
 
-        if(!ticker) {
-            active = nextPlayer;
-            delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
-            startTicker();
-        } else {
-            if(active && nextPlayer !== active) {
-                timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0;
-                document.getElementById(active + '-delay').classList.remove('delay-active');
-            }
-            active = nextPlayer;
-            delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
-        }
-        document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
-        document.getElementById(nextPlayer + '-timer').classList.add('active');
-        updateClock();
+    // 2. Prevent switching if game is over
+    if (active && timers[active] <= 0) return;
+
+    // 3. Logic: If no ticker is running, start it. If running, switch player.
+    if (!ticker) {
+        active = nextPlayer;
+        delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
+        startTicker();
+    } else if (active !== nextPlayer) {
+        // Apply increment to the person who just finished their move
+        timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0;
+        document.getElementById(active + '-delay').classList.remove('delay-active');
+        
+        active = nextPlayer;
+        delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
     }
 
+    // 4. Update Visuals
+    document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
+    document.getElementById(nextPlayer + '-timer').classList.add('active');
+    updateClock();
+}
     function startTicker() {
         if (ticker) return;
         ticker = setInterval(() => { 
