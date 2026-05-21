@@ -81,19 +81,16 @@
 
 <div id="view-match" class="view">
     <div style="background: #111; padding: 12px; border: 1px solid #222; border-radius: 6px; margin-bottom: 15px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="color: var(--accent); font-weight: bold; font-size: 0.9rem;">🏆 TOURNAMENT ENGINE</div>
-            <button onclick="resetTournament()" style="background:none; border:none; color:var(--stop); font-size:0.7rem; font-weight:bold;">RESET</button>
+        <div style="color: var(--accent); font-weight: bold; font-size: 0.9rem; margin-bottom: 8px;">🏆 TOURNAMENT ENGINE</div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <select id="tourney-format" style="margin:0; padding:8px;">
+                <option value="round-robin">Round Robin (All-Play-All)</option>
+                <option value="elo-proximity">Swiss / ELO Proximity</option>
+            </select>
+            <button class="action-btn" style="margin:0; padding:8px; background: var(--go);" onclick="startNewTournament()">Start</button>
         </div>
         <div id="tourney-roster-section">
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 10px;">
-                <select id="tourney-format" style="margin:0; padding:8px;">
-                    <option value="round-robin">Round Robin</option>
-                    <option value="elo-proximity">Swiss / ELO</option>
-                </select>
-                <button class="action-btn" style="margin:0; padding:8px; background: var(--go);" onclick="startNewTournament()">Start</button>
-            </div>
-            <div style="font-size: 0.7rem; color: #888; margin-bottom: 4px;">CHECK IN PLAYERS:</div>
+            <div style="font-size: 0.7rem; color: #888; margin-bottom: 4px;">CHECK IN ACTIVE PLAYERS:</div>
             <div id="tournament-roster" style="max-height: 110px; overflow-y: auto; font-size: 0.8rem; background: #000; padding: 8px; border-radius: 4px;"></div>
         </div>
         <div id="tourney-active-dashboard" style="display: none; margin-top: 5px;">
@@ -117,10 +114,29 @@
         <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
         <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
     </div>
-    <select id="opening"><option value="" disabled selected>Choose Opening...</option>
-        <option value="A00: Uncommon">Flank Openings</option><option value="B01: Scandinavian">Scandinavian</option><option value="B10: Caro-Kann">Caro-Kann</option><option value="B20: Sicilian">Sicilian</option><option value="C00: French">French</option><option value="C41: Philidor">Philidor</option><option value="C50: Italian">Italian</option><option value="C60: Ruy Lopez">Ruy Lopez</option><option value="D00: Queen's Pawn">Queen's Pawn</option><option value="D02: London">London</option><option value="D06: Queen's Gambit">Queen's Gambit</option><option value="E00: Indian">Indian</option>
+    
+    <select id="opening">
+        <option value="" disabled selected>Choose Opening...</option>
+        <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
+        <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
+        <option value="B10: Caro-Kann Defense">Caro-Kann Defense (B10)</option>
+        <option value="B20: Sicilian Defense">Sicilian Defense (B20)</option>
+        <option value="C00: French Defense">French Defense (C00)</option>
+        <option value="C41: Philidor Defense">Philidor Defense (C41)</option>
+        <option value="C50: Italian Game / Giuoco Piano">Italian Game (C50)</option>
+        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez (C60)</option>
+        <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
+        <option value="D02: London System">London System (D02)</option>
+        <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
+        <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
     </select>
-    <select id="result"><option value="" disabled selected>Choose Winner...</option><option value="1-0">1-0</option><option value="0-1">0-1</option><option value="0.5-0.5">½-½</option></select>
+
+    <select id="result">
+        <option value="" disabled selected>Choose Winner...</option>
+        <option value="1-0">1-0 (White Wins)</option>
+        <option value="0-1">0-1 (Black Wins)</option>
+        <option value="0.5-0.5">½-½ (Draw)</option>
+    </select>
     <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
 </div>
 
@@ -134,13 +150,13 @@
        <div id="black-timer" class="clock-face" onpointerdown="switchClock('white', event)">
             <div class="time-stack">
                 <div id="black-delay" class="delay-display">0</div>
-                <div id="txt-black-time" class="main-time" contenteditable="true" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-black-time" class="main-time" oninput="parseManualTime('black')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
             </div>
         </div>
         <div id="white-timer" class="clock-face active" onpointerdown="switchClock('black', event)">
             <div class="time-stack">
                 <div id="white-delay" class="delay-display">0</div>
-                <div id="txt-white-time" class="main-time" contenteditable="true" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
+                <div id="txt-white-time" class="main-time" oninput="parseManualTime('white')" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">05:00</div>
             </div>
         </div>
     </div>
@@ -153,7 +169,11 @@
 
 <div id="view-admin" class="view">
     <input type="text" id="reg-name" placeholder="New Player Name">
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;"><input type="number" id="reg-elo-reg" placeholder="Reg ELO"><input type="number" id="reg-elo-quick" placeholder="Quick ELO"><input type="number" id="reg-elo-blitz" placeholder="Blitz ELO"></div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+        <input type="number" id="reg-elo-reg" placeholder="Reg ELO">
+        <input type="number" id="reg-elo-quick" placeholder="Quick ELO">
+        <input type="number" id="reg-elo-blitz" placeholder="Blitz ELO">
+    </div>
     <button class="action-btn" onclick="registerPlayer()">ADD TO DATABASE</button>
 </div>
 
@@ -165,9 +185,12 @@
 </nav>
 
 <script>
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
-    let allPlayers = [], timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0, isArmed = false, holdTimer, tournamentRounds = [], currentTourneyRoundIdx = 0;
+    let allPlayers = [], timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0;
+    let isArmed = false, holdTimer, tournamentRounds = [], currentTourneyRoundIdx = 0;
+
+    window.addEventListener('beforeunload', (e) => { if (isArmed) { e.preventDefault(); e.returnValue = ''; } });
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -201,75 +224,219 @@
 }
 
     function renderList(list) {
-        document.getElementById('player-list-container').innerHTML = list.filter(p => p && p[0]).map(p => `<div class="player-row"><div style="font-weight:bold;">${p[0]}</div></div>`).join('');
+        document.getElementById('player-list-container').innerHTML = list
+            .filter(p => p && p[0] && p[0].trim() !== '') 
+            .map(p => {
+                let stats = [];
+                if (p[1]) stats.push(`Reg: ${p[1]}`);
+                if (p[2]) stats.push(`Quick: ${p[2]}`);
+                if (p[3]) stats.push(`Blitz: ${p[3]}`);
+                return `<div class="player-row"><div style="font-weight:bold;">${p[0]}</div>${stats.length ? `<div style="font-size:0.7rem;color:#888;">${stats.join(' | ')}</div>` : ''}</div>`;
+            }).join('');
     }
 
     function updateTournamentRosterList() {
-        document.getElementById('tournament-roster').innerHTML = allPlayers.filter(p => p && p[0]).map(p => `<label style="display:block; margin-bottom:4px;"><input type="checkbox" class="tourney-player-check" value="${p[0]}"> ${p[0]}</label>`).join('');
+        const rosterContainer = document.getElementById('tournament-roster');
+        if (!rosterContainer) return;
+        rosterContainer.innerHTML = allPlayers
+            .filter(p => p && p[0] && p[0].trim() !== '')
+            .map((p, idx) => `<label style="display: block; margin-bottom: 6px; color: #eee; user-select: none;"><input type="checkbox" class="tourney-player-check" value="${p[0]}" data-idx="${idx}" style="width:auto; margin:0 8px 0 0;"> ${p[0]}</label>`).join('');
     }
 
     function startNewTournament() {
-        const players = Array.from(document.querySelectorAll('.tourney-player-check:checked')).map(cb => cb.value);
-        if (players.length < 2) return alert("Select at least 2 players");
+        const checkboxes = document.querySelectorAll('.tourney-player-check:checked');
+        let players = [];
+        checkboxes.forEach(cb => { players.push(cb.value); });
+        if (players.length < 2) { alert("Please check at least 2 players to start."); return; }
+        const mode = document.getElementById('tourney-format').value;
         tournamentRounds = []; currentTourneyRoundIdx = 0;
-        document.getElementById('tourney-format').value === 'round-robin' ? generateRoundRobin(players) : generateElo(players);
+        if (mode === 'round-robin') generateRoundRobinSchedule(players); else generateEloProximitySchedule(players);
         document.getElementById('tourney-roster-section').style.display = 'none';
         document.getElementById('tourney-active-dashboard').style.display = 'block';
         displayRound(0);
     }
 
-    function resetTournament() {
-        document.getElementById('tourney-roster-section').style.display = 'block';
-        document.getElementById('tourney-active-dashboard').style.display = 'none';
-        document.querySelectorAll('.tourney-player-check').forEach(cb => cb.checked = false);
-        tournamentRounds = [];
-    }
-
-    function generateRoundRobin(list) {
-        let pool = [...list].sort(() => Math.random() - 0.5);
+    function generateRoundRobinSchedule(playerList) {
+        let pool = [...playerList].sort(() => Math.random() - 0.5);
         if (pool.length % 2 !== 0) pool.push("BYE");
-        for (let r = 0; r < pool.length - 1; r++) {
-            let round = [];
-            for (let i = 0; i < pool.length / 2; i++) round.push({ white: pool[i], black: pool[pool.length - 1 - i], isBye: pool[i] === "BYE" || pool[pool.length - 1 - i] === "BYE" });
-            tournamentRounds.push(round);
+        const numPlayers = pool.length, numRounds = numPlayers - 1, halfSize = numPlayers / 2;
+        for (let round = 0; round < numRounds; round++) {
+            let roundPairings = [];
+            for (let i = 0; i < halfSize; i++) {
+                const whitePlayer = pool[i], blackPlayer = pool[numPlayers - 1 - i];
+                if (whitePlayer !== "BYE" && blackPlayer !== "BYE") {
+                    roundPairings.push(round % 2 === 0 ? { white: whitePlayer, black: blackPlayer } : { white: blackPlayer, black: whitePlayer });
+                } else {
+                    const activePlayer = whitePlayer === "BYE" ? blackPlayer : whitePlayer;
+                    roundPairings.push({ white: activePlayer, black: "BYE", isBye: true });
+                }
+            }
+            tournamentRounds.push(roundPairings);
             pool.splice(1, 0, pool.pop());
         }
     }
 
-    function generateElo(list) {
-        tournamentRounds.push(list.map((p, i) => ({ white: p, black: list[i+1] || "BYE", isBye: !list[i+1] })));
+    function generateEloProximitySchedule(playerList) {
+        const currentFormat = document.getElementById('format').value;
+        const eloIdx = (currentFormat === 'Quick') ? 2 : (currentFormat === 'Blitz' ? 3 : 1);
+        let structured = playerList.map(name => {
+            const match = allPlayers.find(p => p[0] === name);
+            return { name: name, elo: parseInt(match ? match[eloIdx] : 1200) || 1200 };
+        });
+        structured.sort((a, b) => b.elo - a.elo);
+        let roundPairings = [];
+        for (let i = 0; i < structured.length; i += 2) {
+            if (structured[i + 1]) roundPairings.push({ white: structured[i].name, black: structured[i + 1].name });
+            else roundPairings.push({ white: structured[i].name, black: "BYE", isBye: true });
+        }
+        tournamentRounds.push(roundPairings);
     }
 
     function displayRound(idx) {
+        if (idx < 0 || idx >= tournamentRounds.length) return;
         currentTourneyRoundIdx = idx;
-        document.getElementById('current-round-display').innerText = `Round ${idx + 1}/${tournamentRounds.length}`;
-        document.getElementById('active-pairings-list').innerHTML = tournamentRounds[idx].map(p => `<div style="background:#222; padding:5px; margin-bottom:2px;">${p.white} vs ${p.black}</div>`).join('');
+        document.getElementById('current-round-display').innerText = `Round ${idx + 1} of ${tournamentRounds.length}`;
+        const container = document.getElementById('active-pairings-list');
+        container.innerHTML = tournamentRounds[idx].map((pair) => {
+            if (pair.isBye) return `<div style="padding:6px; background:#1a1a1a; color:#888; border-radius:4px;">💤 ${pair.white} has a BYE</div>`;
+            return `<div style="display:flex; justify-content:space-between; align-items:center; background:#222; padding:5px 8px; border-radius:4px;"><span>⚪ ${pair.white} vs ⚫ ${pair.black}</span><button class="action-btn" style="margin:0; width:auto; padding:3px 8px; font-size:0.7rem; background:var(--accent);" onclick="loadPairingToForm('${pair.white}', '${pair.black}')">Load</button></div>`;
+        }).join('');
     }
 
-    function changeRound(d) { if (tournamentRounds[currentTourneyRoundIdx + d]) displayRound(currentTourneyRoundIdx + d); }
+    function changeRound(direction) { const nextIdx = currentTourneyRoundIdx + direction; if (nextIdx >= 0 && nextIdx < tournamentRounds.length) displayRound(nextIdx); }
+    function loadPairingToForm(whiteName, blackName) { document.getElementById('p1-select').value = whiteName; updateEloField('p1'); document.getElementById('p2-select').value = blackName; updateEloField('p2'); }
+    function updatePlayerDropdowns() {
+        const f = document.getElementById('format').value;
+        let idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
+        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}" data-elo="${p[idx]||''}">${p[0]}</option>`).join('');
+        document.getElementById('p1-select').innerHTML = opt; document.getElementById('p2-select').innerHTML = opt;
+    }
+    function updateEloField(p) { const s = document.getElementById(p + '-select'); const elo = s.options[s.selectedIndex]?.getAttribute('data-elo') || ''; document.getElementById(p + 'elo').value = elo; }
 
-    function parseManualTime(player) {
-        if (isArmed && ticker) return; // Cannot edit while running
-        const text = document.getElementById(`txt-${player}-time`).innerText.trim();
-        const parts = text.split(':');
-        const secs = ((parseInt(parts[0]) || 0) * 60) + (parseInt(parts[1]) || 0);
-        timers[player] = secs;
+    async function registerPlayer() {
+        showModalLoading("Adding player...");
+        const data = { action: 'addPlayer', name: document.getElementById('reg-name').value, reg: document.getElementById('reg-elo-reg').value, quick: document.getElementById('reg-elo-quick').value, blitz: document.getElementById('reg-elo-blitz').value };
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+            const text = await res.text();
+            showModalSuccess(text.includes("Error") ? text : "Player added successfully!");
+            loadPlayers();
+            document.getElementById('reg-name').value = ''; document.getElementById('reg-elo-reg').value = ''; document.getElementById('reg-elo-quick').value = ''; document.getElementById('reg-elo-blitz').value = '';
+        } catch (e) { showModalSuccess("Network error"); }
+    }
+
+    async function submitMatch() {
+        showModalLoading("Submitting match...");
+        const p1Value = document.getElementById('p1-select').value, p2Value = document.getElementById('p2-select').value;
+        const d = { action: 'addMatch', p1: p1Value, p1elo: document.getElementById('p1elo').value, p2: p2Value, p2elo: document.getElementById('p2elo').value, white: p1Value, black: p2Value, opening: document.getElementById('opening').value, result: document.getElementById('result').value, format: document.getElementById('format').value };
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+            showModalSuccess("Match submitted successfully!");
+            document.getElementById('p1-select').value = ""; document.getElementById('p2-select').value = ""; document.getElementById('p1elo').value = ""; document.getElementById('p2elo').value = ""; document.getElementById('opening').selectedIndex = 0; document.getElementById('result').selectedIndex = 0;
+        } catch (e) { showModalSuccess("Network error"); }
+    }
+
+    function armClock() {
+        isArmed = true; active = null;
+        const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
+        timers = { white: base, black: base };
+        updateClock();
+        document.getElementById('txt-white-time').removeAttribute('contenteditable');
+        document.getElementById('txt-black-time').removeAttribute('contenteditable');
+        document.getElementById('clock-overlay').classList.add('hidden-ui');
+        document.getElementById('top-bar').classList.add('hidden-ui');
+        document.getElementById('main-nav').classList.add('hidden-ui');
+        document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('timed-out'));
+        const clockView = document.getElementById('view-clock');
+        if (clockView.requestFullscreen) clockView.requestFullscreen().catch(() => {});
+        else if (clockView.webkitRequestFullscreen) clockView.webkitRequestFullscreen();
+    }
+
+    function switchClock(nextPlayer, e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        if (!isArmed) return;
+        const overlay = document.getElementById('clock-overlay');
+        if (!overlay.classList.contains('hidden-ui')) return;
+        if (active && timers[active] <= 0) return;
+        if (!ticker) { active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0; startTicker(); }
+        else {
+            if (active && nextPlayer !== active) { timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0; document.getElementById(active + '-delay').classList.remove('delay-active'); }
+            active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
+        }
+        document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
+        document.getElementById(nextPlayer + '-timer').classList.add('active');
+        updateClock();
+    }
+
+    function startTicker() {
+        if (ticker) return;
+        ticker = setInterval(() => { 
+            if (!active) return;
+            const delayEl = document.getElementById(active + '-delay');
+            if (delayLeft > 0) { delayEl.innerText = delayLeft; delayEl.classList.add('delay-active'); delayLeft--; }
+            else {
+                delayEl.classList.remove('delay-active');
+                timers[active]--; 
+                updateClock(); 
+                if (timers[active] <= 0) { clearInterval(ticker); ticker = null; document.getElementById(active + '-timer').classList.add('timed-out'); }
+            }
+        }, 1000); 
     }
 
     function updateClock() {
         ['white','black'].forEach(p => {
-            if (document.activeElement.id === `txt-${p}-time`) return;
+            if (document.activeElement === document.getElementById(`txt-${p}-time`)) return;
             const m = Math.floor(timers[p]/60), s = timers[p]%60;
             document.getElementById(`txt-${p}-time`).innerText = `${m}:${s<10?'0'+s:s}`;
         });
     }
 
-    function armClock() { isArmed = true; document.getElementById('clock-overlay').classList.add('hidden-ui'); startTicker(); }
-    function startTicker() { ticker = setInterval(() => { if(!active) return; timers[active]--; updateClock(); if(timers[active]<=0) clearInterval(ticker); }, 1000); }
-    function switchClock(p) { active = p; }
-    function resetClock() { location.reload(); }
+    function parseManualTime(player) {
+        const text = document.getElementById(`txt-${player}-time`).innerText.trim();
+        const parts = text.split(':');
+        let totalSeconds = parts.length === 2 ? ((parseInt(parts[0], 10) || 0) * 60) + (parseInt(parts[1], 10) || 0) : (parseInt(text, 10) || 0);
+        if (totalSeconds >= 0) { timers[player] = totalSeconds; if (totalSeconds > 0) document.getElementById(`${player}-timer`).classList.remove('timed-out'); }
+    }
+
+    function resetClock() {
+        clearInterval(ticker); ticker = null; active = null; isArmed = false;
+        const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
+        timers = { white: base, black: base };
+        document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
+        document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
+        document.getElementById('clock-overlay').classList.remove('hidden-ui');
+        document.getElementById('top-bar').classList.remove('hidden-ui');
+        document.getElementById('main-nav').classList.remove('hidden-ui');
+        document.querySelectorAll('.clock-face').forEach(c => { c.classList.remove('timed-out'); c.classList.remove('active'); });
+        document.querySelectorAll('.delay-display').forEach(d => { d.classList.remove('delay-active'); d.innerText = "0"; });
+        updateClock();
+        if (document.fullscreenElement || document.webkitFullscreenElement) { if (document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); }
+    }
+
+    function startHold() { 
+        if (!isArmed) return;
+        holdTimer = setTimeout(() => { 
+            const overlay = document.getElementById('clock-overlay');
+            if (!overlay.classList.contains('hidden-ui')) {
+                if(document.activeElement) document.activeElement.blur();
+                document.getElementById('txt-white-time').removeAttribute('contenteditable');
+                document.getElementById('txt-black-time').removeAttribute('contenteditable');
+                overlay.classList.add('hidden-ui'); document.getElementById('top-bar').classList.add('hidden-ui'); document.getElementById('main-nav').classList.add('hidden-ui');
+                if (active && timers[active] > 0) startTicker();
+            } else {
+                if (ticker) { clearInterval(ticker); ticker = null; }
+                document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
+                document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
+                overlay.classList.remove('hidden-ui'); document.getElementById('top-bar').classList.remove('hidden-ui'); document.getElementById('main-nav').classList.remove('hidden-ui');
+            }
+        }, 1500); 
+    }
+    function endHold() { clearTimeout(holdTimer); }
 
     window.onload = loadPlayers;
+    function showModalLoading(text = "Processing...") { document.getElementById('confirmation-modal').style.display = 'flex'; document.getElementById('modal-spinner').style.display = 'block'; document.getElementById('modal-btn').style.display = 'none'; document.getElementById('modal-text').innerText = text; }
+    function showModalSuccess(text = "Done!") { document.getElementById('confirmation-modal').style.display = 'flex'; document.getElementById('modal-spinner').style.display = 'none'; document.getElementById('modal-btn').style.display = 'block'; document.getElementById('modal-text').innerText = text; }
+    function closeModal() { document.getElementById('confirmation-modal').style.display = 'none'; }
 </script>
 </body>
 </html>
