@@ -10,7 +10,7 @@
         :root { --bg: #000; --accent: #3b82f6; --text: #eee; --go: #22c55e; --stop: #ef4444; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; height: 100vh; touch-action: manipulation; }
         
-        #view-clock { padding: 0; position: relative; overflow: hidden; height: 100vh; width: 100vw; background: #000; }
+        #view-clock { padding: 0; position: relative; overflow: hidden; height: 100vh; width: 100vw; }
         .clock-top-settings { display: grid; grid-template-columns: 1fr 1fr 1fr; background: #000; padding: 5px; border-bottom: 1px solid #222; position: relative; z-index: 10; }
         .clock-top-settings div { font-size: 0.6rem; color: #888; text-align: center; }
         .clock-top-settings input { width: 80%; background: #111; border: 1px solid #333; color: #fff; text-align: center; font-size: 0.8rem; padding: 5px; }
@@ -27,7 +27,8 @@
         .clock-face.timed-out { background: var(--stop) !important; }
         .clock-face.timed-out .main-time { color: #fff !important; }
 
-        #clock-overlay { position: absolute; bottom: calc(30px + env(safe-area-inset-bottom, 0px)); right: 5px; width: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
+        /* Returned to original side layout but shifted upward to prevent clipping */
+        #clock-overlay { position: absolute; bottom: 80px; right: 5px; width: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
         .side-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #333; }
         .side-btn span { display: block; transform: rotate(90deg); white-space: nowrap; font-size: 0.9rem; }
         #pause-btn { background: var(--go); }
@@ -85,7 +86,6 @@
         document.getElementById('clock-overlay').classList.add('hidden-ui');
         document.getElementById('top-bar').classList.add('hidden-ui');
 
-        // Request Full Screen
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().catch(() => {});
@@ -143,7 +143,6 @@
         document.querySelectorAll('.delay-display').forEach(d => { d.classList.remove('delay-active'); d.innerText = "0"; });
         updateClock();
 
-        // Exit Full Screen
         if (document.fullscreenElement || document.webkitFullscreenElement) {
             if (document.exitFullscreen) {
                 document.exitFullscreen().catch(() => {});
@@ -170,17 +169,7 @@
 </script>
 </body>
 </html>
-    }
-
-    function armClock() {
-        isArmed = true; active = null;
-        document.getElementById('txt-white-time').removeAttribute('contenteditable');
-        document.getElementById('txt-black-time').removeAttribute('contenteditable');
-        document.getElementById('clock-overlay').classList.add('hidden-ui');
-        document.getElementById('top-bar').classList.add('hidden-ui');
-    }
-
-    function switchClock(nextPlayer, e) {
+lock(nextPlayer, e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         if (!isArmed) return;
         if (!document.getElementById('clock-overlay').classList.contains('hidden-ui')) return;
