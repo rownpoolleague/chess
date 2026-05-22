@@ -38,7 +38,7 @@
         <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
         <button id="reset-btn" class="action-btn" style="display: none; background: #ef4444;" onclick="location.reload()">RESET ENGINE</button>
         <div class="standings">
-            <div style="font-weight:bold; margin-bottom: 5px;">CUMULATIVE STANDINGS</div>
+            <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
             <div id="standings-list"></div>
         </div>
     </div>
@@ -89,9 +89,9 @@
             <div class="match-card">
                 <div><strong>${m.w.name}</strong> vs <strong>${m.b.name}</strong></div>
                 <div style="display:flex; gap:5px; margin-top:10px;">
-                    <button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1-0</button>
-                    <button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2-1/2</button>
-                    <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0-1</button>
+                    <button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1 - 0</button>
+                    <button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2 - 1/2</button>
+                    <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0 - 1</button>
                 </div>
             </div>`).join('');
         
