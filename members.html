@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ADD PLAYER</title>
+    <style>
+        :root { --bg: #000; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
+        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; cursor: pointer; }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; }
+        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="view-admin">
+    <input type="text" id="reg-name" placeholder="New Player Name">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+        <input type="number" id="reg-elo-reg" placeholder="Reg ELO">
+        <input type="number" id="reg-elo-quick" placeholder="Quick ELO">
+        <input type="number" id="reg-elo-blitz" placeholder="Blitz ELO">
+    </div>
+    <button class="action-btn" onclick="registerPlayer()">ADD TO DATABASE</button>
+</div>
+
+<div id="confirmation-modal" class="modal-overlay">
+    <div class="modal-box">
+        <p id="modal-text">Processing...</p>
+        <button id="modal-btn" class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
+
+    async function registerPlayer() {
+        const name = document.getElementById('reg-name').value;
+        if (!name) { alert("Name is required"); return; }
+        
+        showModal("Adding player...");
+        const data = { 
+            action: 'addPlayer', 
+            name: name, 
+            reg: document.getElementById('reg-elo-reg').value, 
+            quick: document.getElementById('reg-elo-quick').value, 
+            blitz: document.getElementById('reg-elo-blitz').value 
+        };
+
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+            const text = await res.text();
+            showModal(text.includes("Error") ? text : "Player added successfully!");
+            if (!text.includes("Error")) {
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-elo-reg').value = '';
+                document.getElementById('reg-elo-quick').value = '';
+                document.getElementById('reg-elo-blitz').value = '';
+            }
+        } catch (e) { showModal("Network error"); }
+    }
+
+    function showModal(text) {
+        document.getElementById('confirmation-modal').style.display = 'flex';
+        document.getElementById('modal-text').innerText = text;
+    }
+
+    function closeModal() {
+        document.getElementById('confirmation-modal').style.display = 'none';
+    }
+</script>
+</body>
+</html>
