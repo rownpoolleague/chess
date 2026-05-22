@@ -21,13 +21,16 @@
         
         .delay-display { font-size: 1.8rem; color: var(--accent); font-weight: bold; height: 2rem; visibility: hidden; }
         .delay-active { visibility: visible; }
-        .main-time { font-size: 6rem; font-family: monospace; color: #333; line-height: 1; outline: none; -webkit-user-select: text; user-select: text; pointer-events: auto; }
-        .clock-face.active { background: #111; }
-        .clock-face.active .main-time { color: #fff; }
+        
+        /* Time Input Fields styling */
+        .time-container { display: flex; align-items: center; justify-content: center; font-size: 6rem; font-family: monospace; color: #333; line-height: 1; }
+        .time-field { outline: none; -webkit-user-select: text; user-select: text; pointer-events: auto; min-width: 2ch; text-align: center; }
+        .colon-separator { pointer-events: none; user-select: none; padding: 0 5px; }
+        
+        .clock-face.active .time-container { color: #fff; }
         .clock-face.timed-out { background: var(--stop) !important; }
-        .clock-face.timed-out .main-time { color: #fff !important; }
+        .clock-face.timed-out .time-container { color: #fff !important; }
 
-        /* Returned to original side layout but shifted upward to prevent clipping */
         #clock-overlay { position: absolute; bottom: 80px; right: 5px; width: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
         .side-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #333; }
         .side-btn span { display: block; transform: rotate(90deg); white-space: nowrap; font-size: 0.9rem; }
@@ -49,13 +52,21 @@
        <div id="black-timer" class="clock-face" onpointerdown="switchClock('white', event)">
             <div class="time-stack">
                 <div id="black-delay" class="delay-display">0</div>
-                <div id="txt-black-time" class="main-time" contenteditable="true" oninput="handleTimeInput('black')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05:00</div>
+                <div class="time-container">
+                    <div id="black-min" class="time-field" contenteditable="true" oninput="handleTimeInput('black')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05</div>
+                    <div class="colon-separator">:</div>
+                    <div id="black-sec" class="time-field" contenteditable="true" oninput="handleTimeInput('black')" onclick="event.stopPropagation()" onfocus="this.innerText=''">00</div>
+                </div>
             </div>
        </div>
        <div id="white-timer" class="clock-face active" onpointerdown="switchClock('black', event)">
             <div class="time-stack">
                 <div id="white-delay" class="delay-display">0</div>
-                <div id="txt-white-time" class="main-time" contenteditable="true" oninput="handleTimeInput('white')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05:00</div>
+                <div class="time-container">
+                    <div id="white-min" class="time-field" contenteditable="true" oninput="handleTimeInput('white')" onclick="event.stopPropagation()" onfocus="this.innerText=''">05</div>
+                    <div class="colon-separator">:</div>
+                    <div id="white-sec" class="time-field" contenteditable="true" oninput="handleTimeInput('white')" onclick="event.stopPropagation()" onfocus="this.innerText=''">00</div>
+                </div>
             </div>
        </div>
     </div>
@@ -70,19 +81,19 @@
     let timers = { white: 300, black: 300 }, active = null, ticker = null, delayLeft = 0;
     let isArmed = false, holdTimer;
 
-    function handleTimeInput(player) { parseManualTime(player); }
-
-    function parseManualTime(player) {
-        const text = document.getElementById(`txt-${player}-time`).innerText.trim();
-        const parts = text.split(':');
-        let totalSeconds = parts.length === 2 ? ((parseInt(parts[0], 10) || 0) * 60) + (parseInt(parts[1], 10) || 0) : (parseInt(text, 10) || 0);
-        if (totalSeconds >= 0) { timers[player] = totalSeconds; }
+    function handleTimeInput(player) {
+        const minText = document.getElementById(`${player}-min`).innerText.trim().replace(/[^0-9]/g, '');
+        const secText = document.getElementById(`${player}-sec`).innerText.trim().replace(/[^0-9]/g, '');
+        
+        const mins = parseInt(minText, 10) || 0;
+        const secs = parseInt(secText, 10) || 0;
+        
+        timers[player] = (mins * 60) + secs;
     }
 
     function armClock() {
         isArmed = true; active = null;
-        document.getElementById('txt-white-time').removeAttribute('contenteditable');
-        document.getElementById('txt-black-time').removeAttribute('contenteditable');
+        document.querySelectorAll('.time-field').forEach(el => el.removeAttribute('contenteditable'));
         document.getElementById('clock-overlay').classList.add('hidden-ui');
         document.getElementById('top-bar').classList.add('hidden-ui');
 
@@ -127,7 +138,13 @@
     function updateClock() {
         ['white','black'].forEach(p => {
             const m = Math.floor(timers[p]/60), s = timers[p]%60;
-            document.getElementById(`txt-${p}-time`).innerText = `${m}:${s<10?'0'+s:s}`;
+            // Only update DOM if elements aren't currently active/focused by user keyboard
+            if (document.activeElement !== document.getElementById(`${p}-min`)) {
+                document.getElementById(`${p}-min`).innerText = m < 10 ? '0' + m : m;
+            }
+            if (document.activeElement !== document.getElementById(`${p}-sec`)) {
+                document.getElementById(`${p}-sec`).innerText = s < 10 ? '0' + s : s;
+            }
         });
     }
 
@@ -135,8 +152,8 @@
         clearInterval(ticker); ticker = null; active = null; isArmed = false;
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
-        document.getElementById('txt-white-time').setAttribute('contenteditable', 'true');
-        document.getElementById('txt-black-time').setAttribute('contenteditable', 'true');
+        
+        document.querySelectorAll('.time-field').forEach(el => el.setAttribute('contenteditable', 'true'));
         document.getElementById('clock-overlay').classList.remove('hidden-ui');
         document.getElementById('top-bar').classList.remove('hidden-ui');
         document.querySelectorAll('.clock-face').forEach(c => { c.classList.remove('timed-out'); c.classList.remove('active'); });
@@ -169,14 +186,7 @@
 </script>
 </body>
 </html>
-lock(nextPlayer, e) {
-        if (e) { e.preventDefault(); e.stopPropagation(); }
-        if (!isArmed) return;
-        if (!document.getElementById('clock-overlay').classList.contains('hidden-ui')) return;
-        if (active && timers[active] <= 0) return;
-        if (!ticker) { active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0; startTicker(); }
-        else {
-            if (active && nextPlayer !== active) { timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0; document.getElementById(active + '-delay').classList.remove('delay-active'); }
+e) { timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0; document.getElementById(active + '-delay').classList.remove('delay-active'); }
             active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
         }
         document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
