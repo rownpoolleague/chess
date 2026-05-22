@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUBMIT MATCH</title>
+    <style>
+        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        header { padding: 10px 0; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
+        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
+        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; }
+        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<header><h1>SUBMIT MATCH</h1></header>
+
+<div id="confirmation-modal" class="modal-overlay">
+    <div class="modal-box">
+        <p id="modal-text">Processing...</p>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<div id="view-match">
+    <select id="format" onchange="updatePlayerDropdowns()">
+        <option value="Regular">Regular</option>
+        <option value="Quick">Quick</option>
+        <option value="Blitz">Blitz</option>
+    </select>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
+        <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
+    </div>
+    
+    <select id="opening">
+        <option value="" disabled selected>Choose Opening...</option>
+        <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
+        <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
+        <option value="B10: Caro-Kann Defense">Caro-Kann Defense (B10)</option>
+        <option value="B20: Sicilian Defense">Sicilian Defense (B20)</option>
+        <option value="C00: French Defense">French Defense (C00)</option>
+        <option value="C41: Philidor Defense">Philidor Defense (C41)</option>
+        <option value="C50: Italian Game / Giuoco Piano">Italian Game (C50)</option>
+        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez (C60)</option>
+        <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
+        <option value="D02: London System">London System (D02)</option>
+        <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
+        <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
+    </select>
+
+    <select id="result">
+        <option value="" disabled selected>Result...</option>
+        <option value="1-0">1 - 0</option>
+         <option value="0.5-0.5">½ - ½</option>
+        <option value="0-1">0 - 1</option>
+       
+    </select>
+    <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
+    let allPlayers = [];
+
+    async function loadPlayers() {
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
+            allPlayers = await resp.json();
+            updatePlayerDropdowns();
+        } catch (e) { console.error("Load failed"); }
+    }
+
+    function updatePlayerDropdowns() {
+        const f = document.getElementById('format').value;
+        const idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
+        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}" data-elo="${p[idx]||''}">${p[0]}</option>`).join('');
+        document.getElementById('p1-select').innerHTML = opt;
+        document.getElementById('p2-select').innerHTML = opt;
+    }
+
+    function updateEloField(p) {
+        const s = document.getElementById(p + '-select');
+        document.getElementById(p + 'elo').value = s.options[s.selectedIndex]?.getAttribute('data-elo') || '';
+    }
+
+    function clearForm() {
+        document.getElementById('p1-select').value = "";
+        document.getElementById('p2-select').value = "";
+        document.getElementById('p1elo').value = "";
+        document.getElementById('p2elo').value = "";
+        document.getElementById('opening').selectedIndex = 0;
+        document.getElementById('result').selectedIndex = 0;
+    }
+
+    async function submitMatch() {
+        const d = { 
+            action: 'addMatch', 
+            p1: document.getElementById('p1-select').value, 
+            p1elo: document.getElementById('p1elo').value, 
+            p2: document.getElementById('p2-select').value, 
+            p2elo: document.getElementById('p2elo').value, 
+            white: document.getElementById('p1-select').value, 
+            black: document.getElementById('p2-select').value, 
+            opening: document.getElementById('opening').value, 
+            result: document.getElementById('result').value, 
+            format: document.getElementById('format').value 
+        };
+        document.getElementById('confirmation-modal').style.display = 'flex';
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+            document.getElementById('modal-text').innerText = "Match submitted successfully!";
+            clearForm();
+        } catch (e) { document.getElementById('modal-text').innerText = "Network error"; }
+    }
+
+    function closeModal() { document.getElementById('confirmation-modal').style.display = 'none'; }
+    window.onload = loadPlayers;
+</script>
+</body>
+</html>
