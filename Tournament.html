@@ -39,7 +39,8 @@
             flex-direction: column;
             overflow: hidden;
 
-            padding-top: env(safe-area-inset-top, 2px);
+            /* Pushed down 1px from safe area to let the top edge line render clearly */
+            padding-top: calc(env(safe-area-inset-top, 2px) + 1px);
             padding-bottom: env(safe-area-inset-bottom, 2px);
             padding-left: env(safe-area-inset-left, 2px);
             padding-right: env(safe-area-inset-right, 2px);
@@ -228,7 +229,6 @@
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
 
-                // Map the entire sheet matrix: [Name, Regular, Quick, Blitz]
                 masterRoster = data.map(p => {
                     return {
                         id: p[0],
@@ -267,12 +267,10 @@
         function updateRosterRatings() {
             timeControl = document.getElementById('tc-select').value;
 
-            // Update the flat rating key for each master entry using active time control
             masterRoster.forEach(p => {
                 p.rating = p.ratings[timeControl];
             });
 
-            // Track user selections across rating conversions
             const checkedMap = {};
             document.querySelectorAll('.p-select').forEach(cb => {
                 checkedMap[cb.value] = cb.checked;
@@ -357,7 +355,6 @@
             timeControl = document.getElementById('tc-select').value;
             format = document.getElementById('fmt').value;
 
-            // Finalize active profile ratings for execution
             players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
                 id: p.id,
                 name: p.name,
@@ -451,7 +448,13 @@
 
         function generatePairings() {
             if (format === 'rr') {
-                return rrSchedules[currentRound - 1] || [];
+                // Point straight to actual live objects inside players state group array 
+                let scheduleTemplate = rrSchedules[currentRound - 1] || [];
+                return scheduleTemplate.map(m => {
+                    let liveW = players.find(p => p.id === m.w.id) || m.w;
+                    let liveB = players.find(p => p.id === m.b.id) || m.b;
+                    return { w: liveW, b: liveB, res: m.res };
+                });
             }
 
             let pool = [...players].sort((a, b) => b.rating - a.rating);
@@ -670,6 +673,9 @@
 
         function setRes(i, res) {
             pairings[i].res = res;
+            if (format === 'rr' && rrSchedules[currentRound - 1]) {
+                rrSchedules[currentRound - 1][i].res = res;
+            }
             saveState();
             render();
         }
@@ -681,22 +687,26 @@
             });
 
             pairings.forEach(m => {
-                if (m.b.id !== "BYE_DUMMY") {
-                    playedPairs.add(`${m.w.id}-${m.b.id}`);
-                    m.w.colorHistory.push('W');
-                    m.w.colorScore += 1;
-                    m.b.colorHistory.push('B');
-                    m.b.colorScore -= 1;
-                } else {
-                    receivedBye.add(m.w.id);
+                let matchW = players.find(p => p.id === m.w.id);
+                let matchB = players.find(p => p.id === m.b.id);
+
+                if (matchB && matchB.id !== "BYE_DUMMY") {
+                    playedPairs.add(`${matchW.id}-${matchB.id}`);
+                    matchW.colorHistory.push('W');
+                    matchW.colorScore += 1;
+                    matchB.colorHistory.push('B');
+                    matchB.colorScore -= 1;
+                } else if (matchW) {
+                    receivedBye.add(matchW.id);
                 }
 
                 if (m.res === 'w' || m.res === 'bye_win') {
-                    m.w.score += 1;
+                    if (matchW) matchW.score += 1;
+                } else if (m.res === 'b') {
+                    if (matchB) matchB.score += 1;
                 } else if (m.res === 'd') {
-                    m.w.score += 0.5;
-                    m.b.score += 0.5;
-                    m.b.score += 1;
+                    if (matchW) matchW.score += 0.5;
+                    if (matchB) matchB.score += 0.5;
                 }
             });
 
