@@ -22,7 +22,7 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            /* Matching both backgrounds to absolute pure black prevents the phone UI from bleeding an artifact color */
+            /* Absolute pure black background seals the window window backdrop from bleeding through */
             background-color: #000; 
             overflow: hidden; /* Prevents layout bounce scrolling on mobile devices */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -30,18 +30,22 @@
 
         .form-wrapper {
             position: fixed;
-            top: 0;
+            /* Bleeds the top boundary off-screen by 10px to cover the browser viewport rounding bug */
+            top: -10px;
             left: 0;
             right: 0;
             bottom: 0;
-            border: 4px solid #1e90ff;
-            border-radius: 12px; /* Smoothly curves all four corners */
+            border-left: 4px solid #1e90ff;
+            border-right: 4px solid #1e90ff;
+            border-bottom: 4px solid #1e90ff;
+            border-bottom-left-radius: 12px; /* Smoothly curves bottom left corner */
+            border-bottom-right-radius: 12px; /* Smoothly curves bottom right corner */
             display: flex;
             flex-direction: column;
             overflow: hidden; /* Ensures child elements don't spill past the curved corners */
             
-            /* Uses padding inset boundaries to isolate your frame content completely away from the phone's hardware overlay spaces */
-            padding-top: env(safe-area-inset-top, 4px);
+            /* Counterbalances the -10px top position while maintaining safe area alignment */
+            padding-top: calc(10px + env(safe-area-inset-top, 4px));
             padding-bottom: env(safe-area-inset-bottom, 4px);
             padding-left: env(safe-area-inset-left, 4px);
             padding-right: env(safe-area-inset-right, 4px);
@@ -58,6 +62,9 @@
         }
 
         header {
+            /* Creates a top border inside the safe area to visually act as the top frame border */
+            border-top: 4px solid #1e90ff;
+            padding-top: 15px;
             padding-bottom: 12px;
             border-bottom: 1px solid #222;
             margin-bottom: 15px;
