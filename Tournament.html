@@ -152,6 +152,15 @@
         pairings = generatePairings();
         document.getElementById('setup-view').style.display = 'none';
         document.getElementById('active-view').style.display = 'block';
+        
+        // Triggers hardware full screen mode execution upon user interface interaction
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) { 
+            elem.requestFullscreen().catch(() => {}); 
+        } else if (elem.webkitRequestFullscreen) { 
+            elem.webkitRequestFullscreen(); 
+        }
+
         render();
     }
 
