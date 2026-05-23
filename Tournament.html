@@ -25,7 +25,7 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            background-color: #111;
+            background-color: #000;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
@@ -38,8 +38,6 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-
-            /* Pushed down 1px from safe area to let the top edge line render clearly */
             padding-top: calc(env(safe-area-inset-top, 2px) + 1px);
             padding-bottom: env(safe-area-inset-bottom, 2px);
             padding-left: env(safe-area-inset-left, 2px);
@@ -201,7 +199,6 @@
                 </div>
             </div>
 
-            <!-- Utility Row -->
             <div class="util-row">
                 <button class="util-btn" onclick="goToMainMenu()">Main Menu</button>
                 <button class="util-btn reset-color" onclick="resetTournament()">Reset Tournament</button>
@@ -330,13 +327,6 @@
                     document.getElementById('active-view').style.display = 'block';
                     document.getElementById('t-name-display').innerText = tournamentName;
                     document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
-
-                    if (currentRound > totalRounds || (format === 'rr' && currentRound > totalRounds)) {
-                        document.getElementById('round-title').innerText = "Tournament Complete";
-                        document.getElementById('pairings-list').innerHTML = "";
-                        document.getElementById('next-btn').style.display = 'none';
-                        document.getElementById('dl-btn').style.display = 'block';
-                    }
                     render();
                 } else {
                     updateRosterRatings();
@@ -448,7 +438,6 @@
 
         function generatePairings() {
             if (format === 'rr') {
-                // Point straight to actual live objects inside players state group array 
                 let scheduleTemplate = rrSchedules[currentRound - 1] || [];
                 return scheduleTemplate.map(m => {
                     let liveW = players.find(p => p.id === m.w.id) || m.w;
@@ -634,30 +623,37 @@
         function render() {
             if (currentRound <= totalRounds) {
                 document.getElementById('round-title').innerText = `Round ${currentRound} of ${totalRounds}`;
-            }
+                document.getElementById('next-btn').style.display = pairings.every(m => m.res !== null) && pairings.length > 0 ? 'block' : 'none';
+                document.getElementById('dl-btn').style.display = 'none';
 
-            document.getElementById('pairings-list').innerHTML = pairings.map((m, i) => {
-                if (m.res === "bye_win") {
+                document.getElementById('pairings-list').innerHTML = pairings.map((m, i) => {
+                    if (m.res === "bye_win") {
+                        return `
+                    <div class="match-card" style="border-left-color: var(--go);">
+                        <div><strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) has a <strong>BYE</strong></div>
+                        <div style="font-size: 0.85rem; color: var(--go); margin-top: 5px;">+1.0 Point Auto-Assigned</div>
+                    </div>`;
+                    }
                     return `
-                <div class="match-card" style="border-left-color: var(--go);">
-                    <div><strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) has a <strong>BYE</strong></div>
-                    <div style="font-size: 0.85rem; color: var(--go); margin-top: 5px;">+1.0 Point Auto-Assigned</div>
+                <div class="match-card">
+                    <div>
+                        <strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) <span style="color:#888;">(W)</span>
+                        vs 
+                        <strong>${m.b.name}</strong> (${m.b.rating === 0 ? 'UNR' : m.b.rating}) <span style="color:#888;">(B)</span>
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1 - 0</button>
+                        <button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2 - 1/2</button>
+                        <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0 - 1</button>
+                    </div>
                 </div>`;
-                }
-                return `
-            <div class="match-card">
-                <div>
-                    <strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) <span style="color:#888;">(W)</span>
-                    vs 
-                    <strong>${m.b.name}</strong> (${m.b.rating === 0 ? 'UNR' : m.b.rating}) <span style="color:#888;">(B)</span>
-                </div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
-                    <button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1 - 0</button>
-                    <button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2 - 1/2</button>
-                    <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0 - 1</button>
-                </div>
-            </div>`;
-            }).join('');
+                }).join('');
+            } else {
+                document.getElementById('round-title').innerText = "Tournament Complete";
+                document.getElementById('pairings-list').innerHTML = "";
+                document.getElementById('next-btn').style.display = 'none';
+                document.getElementById('dl-btn').style.display = 'block';
+            }
 
             document.getElementById('standings-list').innerHTML = [...players].sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
@@ -667,8 +663,6 @@
                 <span>${p.name} (${p.rating === 0 ? 'UNR' : p.rating})</span>
                 <span>${formatScore(p.score)}</span>
             </div>`).join('');
-
-            document.getElementById('next-btn').style.display = pairings.every(m => m.res !== null) && pairings.length > 0 && currentRound <= totalRounds ? 'block' : 'none';
         }
 
         function setRes(i, res) {
@@ -711,10 +705,7 @@
             });
 
             if (currentRound >= totalRounds) {
-                document.getElementById('round-title').innerText = "Tournament Complete";
-                document.getElementById('pairings-list').innerHTML = "";
-                document.getElementById('next-btn').style.display = 'none';
-                document.getElementById('dl-btn').style.display = 'block';
+                currentRound++;
                 saveState();
                 render();
             } else {
