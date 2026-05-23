@@ -76,6 +76,7 @@ h1 {
     height: 36px;
     line-height: 28px; /* Vertically aligns text nicely inside button */
     width: 250px;
+    cursor: pointer;
 }
 /* Footer styling for logo */
 footer {
@@ -95,15 +96,23 @@ footer {
         <div class="overlay">
             <h1>Main Menu</h1>
             <div class="menu-container">
-                <a class="menu-button" href="members.html">SSCC Members</a>
-                <a class="menu-button" href="Tournament.html">Run Tournament</a>
-                <a class="menu-button" href="Clock.html">Clock</a>
-                <a class="menu-button" href="submit.html">Submit a Match</a>
+                <a class="menu-button" href="members.html" onclick="goTo(event, this.href)">SSCC Members</a>
+                <a class="menu-button" href="Tournament.html" onclick="goTo(event, this.href)">Run Tournament</a>
+                <a class="menu-button" href="Clock.html" onclick="goTo(event, this.href)">Clock</a>
+                <a class="menu-button" href="submit.html" onclick="goTo(event, this.href)">Submit a Match</a>
             </div>
         </div>
         <footer>
             <img src="icon.png" alt="Club Logo" class="footer-logo">
         </footer>
     </div>
+
+    <script>
+        // Forces pages to open inline inside the standalone fullscreen container app
+        function goTo(event, url) {
+            event.preventDefault();
+            window.location.href = url;
+        }
+    </script>
 </body>
 </html>
