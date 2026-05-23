@@ -2,44 +2,130 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TOURNAMENT ENGINE</title>
     <style>
-        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 15px; }
-        .engine-box { background: var(--card); padding: 15px; border: 1px solid #222; border-radius: 6px; }
-        select, input, .action-btn { width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; background: #181818; color: white; }
-        .action-btn { background: var(--go); border: none; font-weight: bold; cursor: pointer; }
-        .p-label { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; cursor: pointer; }
-        .p-label input { width: auto; margin: 0 10px 0 0; }
-        .match-card { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 4px; border-left: 4px solid #333; }
-        .res-btn { flex: 1; padding: 8px; background: #222; border: 1px solid #444; color: white; cursor: pointer; }
-        .res-btn.active { background: var(--accent); }
-        .standings { margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; font-size: 0.9rem; }
+        :root { 
+            --bg: #000; 
+            --card: #111; 
+            --accent: #3b82f6; 
+            --text: #eee; 
+            --go: #22c55e; 
+        }
+        * {
+            box-sizing: border-box;
+        }
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%;
+            background-color: #111; 
+            overflow: hidden; /* Prevents bounce scrolling on full screen mobile apps */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .form-wrapper {
+            width: 100%; 
+            height: 100dvh; 
+            border: 4px solid #1e90ff;
+            border-radius: 0; 
+            display: flex;
+            flex-direction: column;
+            
+            /* Accounts for physical notches and home bar overlays in true fullscreen mode */
+            padding-top: env(safe-area-inset-top, 2px);
+            padding-bottom: env(safe-area-inset-bottom, 2px);
+            padding-left: env(safe-area-inset-left, 2px);
+            padding-right: env(safe-area-inset-right, 2px);
+        }
+        .engine-box { 
+            flex: 1;
+            background: var(--bg); 
+            padding: 15px; 
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Standard scrolling inside the blue frame boundaries if roster/standings grow */
+        }
+        select, input, .action-btn { 
+            width: 100%; 
+            box-sizing: border-box; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 4px; 
+            border: 1px solid #333; 
+            background: #181818; 
+            color: white; 
+            font-size: 16px; /* Prevents iOS browser zoom on input focus */
+        }
+        .action-btn { 
+            background: var(--go); 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .p-label { 
+            display: flex; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #222; 
+            cursor: pointer; 
+            color: var(--text);
+        }
+        .p-label input { 
+            width: auto; 
+            margin: 0 10px 0 0; 
+        }
+        .match-card { 
+            background: #1a1a1a; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 4px; 
+            border-left: 4px solid #333; 
+            color: var(--text);
+        }
+        .res-btn { 
+            flex: 1; 
+            padding: 8px; 
+            background: #222; 
+            border: 1px solid #444; 
+            color: white; 
+            cursor: pointer; 
+        }
+        .res-btn.active { 
+            background: var(--accent); 
+        }
+        .standings { 
+            margin-top: 20px; 
+            border-top: 1px solid #333; 
+            padding-top: 10px; 
+            font-size: 0.9rem; 
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
 
-<div class="engine-box">
-    <div id="setup-view">
-        <select id="fmt" onchange="toggleRounds()">
-            <option value="swiss">Swiss</option>
-            <option value="rr">Round Robin</option>
-        </select>
-        <input type="number" id="rnd-count" placeholder="Number of Rounds">
-        <div id="roster-list" style="max-height: 50vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
-        <button class="action-btn" onclick="startTournament()">BEGIN</button>
-    </div>
+<div class="form-wrapper">
+    <div class="engine-box">
+        <div id="setup-view">
+            <select id="fmt" onchange="toggleRounds()">
+                <option value="swiss">Swiss</option>
+                <option value="rr">Round Robin</option>
+            </select>
+            <input type="number" id="rnd-count" placeholder="Number of Rounds">
+            <div id="roster-list" style="max-height: 73vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
+            <button class="action-btn" style="margin-top: 10px;" onclick="startTournament()">BEGIN</button>
+        </div>
 
-    <div id="active-view" style="display: none;">
-        <div id="round-title" style="font-weight: bold; margin-bottom: 10px;"></div>
-        <div id="pairings-list"></div>
-        <button id="next-btn" class="action-btn" style="display: none;" onclick="processRound()">NEXT ROUND</button>
-        <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
-        <button id="reset-btn" class="action-btn" style="display: none; background: #ef4444;" onclick="location.reload()">RESET ENGINE</button>
-        <div class="standings">
-            <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
-            <div id="standings-list"></div>
+        <div id="active-view" style="display: none;">
+            <div id="round-title" style="font-weight: bold; margin-bottom: 10px; color: var(--text);"></div>
+            <div id="pairings-list"></div>
+            <button id="next-btn" class="action-btn" style="display: none;" onclick="processRound()">NEXT ROUND</button>
+            <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
+            <button id="reset-btn" class="action-btn" style="display: none; background: #ef4444;" onclick="location.reload()">RESET ENGINE</button>
+            <div class="standings">
+                <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
+                <div id="standings-list"></div>
+            </div>
         </div>
     </div>
 </div>
