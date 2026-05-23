@@ -1,108 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TOURNAMENT ENGINE</title>
     <style>
-        :root { 
-            --bg: #000; 
-            --card: #111; 
-            --accent: #3b82f6; 
-            --text: #eee; 
-            --go: #22c55e; 
+        :root {
+            --bg: #000;
+            --card: #111;
+            --accent: #3b82f6;
+            --text: #eee;
+            --go: #22c55e;
             --danger: #b91c1c;
             --neutral: #333;
         }
+
         * {
             box-sizing: border-box;
         }
-        html, body { 
-            margin: 0; 
-            padding: 0; 
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
             height: 100%;
-            background-color: #111; 
-            overflow: hidden; 
+            background-color: #111;
+            overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
+
         .form-wrapper {
-            width: 100%; 
-            height: 100dvh; 
+            width: 100%;
+            height: 100dvh;
             border: 4px solid #1e90ff;
-            border-radius: 32px; 
+            border-radius: 32px;
             display: flex;
             flex-direction: column;
-            overflow: hidden; 
-            
+            overflow: hidden;
+
             padding-top: env(safe-area-inset-top, 2px);
             padding-bottom: env(safe-area-inset-bottom, 2px);
             padding-left: env(safe-area-inset-left, 2px);
             padding-right: env(safe-area-inset-right, 2px);
         }
-        .engine-box { 
+
+        .engine-box {
             flex: 1;
-            background: var(--bg); 
-            padding: 15px; 
+            background: var(--bg);
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            overflow-y: auto; 
+            overflow-y: auto;
         }
-        select, input, .action-btn { 
-            width: 100%; 
-            box-sizing: border-box; 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 4px; 
-            border: 1px solid #333; 
-            background: #181818; 
-            color: white; 
-            font-size: 16px; 
+
+        select,
+        input,
+        .action-btn {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #181818;
+            color: white;
+            font-size: 16px;
         }
-        .action-btn { 
-            background: var(--go); 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
+
+        .action-btn {
+            background: var(--go);
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .p-label { 
-            display: flex; 
-            align-items: center; 
-            padding: 10px 0; 
-            border-bottom: 1px solid #222; 
-            cursor: pointer; 
+
+        .p-label {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
             color: var(--text);
         }
-        .p-label input { 
-            width: auto; 
-            margin: 0 10px 0 0; 
+
+        .p-label input {
+            width: auto;
+            margin: 0 10px 0 0;
         }
-        .match-card { 
-            background: #1a1a1a; 
-            padding: 15px; 
-            margin-bottom: 10px; 
-            border-radius: 4px; 
-            border-left: 4px solid #333; 
+
+        .match-card {
+            background: #1a1a1a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #333;
             color: var(--text);
         }
-        .res-btn { 
-            flex: 1; 
-            padding: 8px; 
-            background: #222; 
-            border: 1px solid #444; 
-            color: white; 
-            cursor: pointer; 
+
+        .res-btn {
+            flex: 1;
+            padding: 8px;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            cursor: pointer;
         }
-        .res-btn.active { 
-            background: var(--accent); 
+
+        .res-btn.active {
+            background: var(--accent);
         }
-        .standings { 
-            margin-top: 20px; 
-            border-top: 1px solid #333; 
-            padding-top: 10px; 
-            font-size: 0.9rem; 
+
+        .standings {
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            font-size: 0.9rem;
             color: var(--text);
             margin-bottom: 20px;
         }
+
         .util-row {
             display: flex;
             gap: 10px;
@@ -110,6 +127,7 @@
             padding-top: 15px;
             border-top: 1px solid #222;
         }
+
         .util-btn {
             flex: 1;
             padding: 12px;
@@ -121,413 +139,509 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         .util-btn.reset-color {
             background: var(--danger);
             border-color: #991b1b;
         }
+
+        #t-meta-display {
+            font-size: 1rem;
+            color: #888;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
         #t-name-display {
             font-size: 1.25rem;
             font-weight: 800;
             color: #1e90ff;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             letter-spacing: 0.5px;
         }
     </style>
 </head>
+
 <body>
 
-<div class="form-wrapper">
-    <div class="engine-box">
-        <div id="setup-view">
-            <input type="text" id="t-name-input" placeholder="Tournament Name (e.g., Summer Swiss Open)" autocomplete="off">
-            <select id="fmt" onchange="toggleRounds()">
-                <option value="swiss">Swiss (USCF Rating Balanced)</option>
-                <option value="rr">Round Robin</option>
-            </select>
-            <input type="number" id="rnd-count" placeholder="Number of Rounds" value="3">
-            <div id="roster-list" style="max-height: 50vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
-            <button class="action-btn" style="margin-top: 10px;" onclick="startTournament()">BEGIN</button>
-        </div>
+    <div class="form-wrapper">
+        <div class="engine-box">
+            <div id="setup-view">
+                <input type="text" id="t-name-input" placeholder="Tournament Name (e.g., Summer Swiss Open)" autocomplete="off">
 
-        <div id="active-view" style="display: none;">
-            <div id="t-name-display"></div>
-            <div id="round-title" style="font-weight: bold; margin-bottom: 10px; color: var(--text);"></div>
-            <div id="pairings-list"></div>
-            <button id="next-btn" class="action-btn" style="display: none;" onclick="processRound()">NEXT ROUND</button>
-            <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
-            <div class="standings">
-                <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
-                <div id="standings-list"></div>
+                <select id="tc-select" onchange="updateRosterRatings()">
+                    <option value="regular">Regular Rating</option>
+                    <option value="quick">Quick Rating</option>
+                    <option value="blitz">Blitz Rating</option>
+                </select>
+
+                <select id="fmt" onchange="toggleRounds()">
+                    <option value="swiss">Swiss (USCF Rating Balanced)</option>
+                    <option value="rr">Round Robin</option>
+                </select>
+
+                <input type="number" id="rnd-count" placeholder="Number of Rounds" value="3">
+                <div id="roster-list" style="max-height: 50vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
+                <button class="action-btn" style="margin-top: 10px;" onclick="startTournament()">BEGIN</button>
+            </div>
+
+            <div id="active-view" style="display: none;">
+                <div id="t-name-display"></div>
+                <div id="t-meta-display"></div>
+                <div id="round-title" style="font-weight: bold; margin-bottom: 10px; color: var(--text);"></div>
+                <div id="pairings-list"></div>
+                <button id="next-btn" class="action-btn" style="display: none;" onclick="processRound()">NEXT ROUND</button>
+                <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
+                <div class="standings">
+                    <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
+                    <div id="standings-list"></div>
+                </div>
+            </div>
+
+            <!-- Utility Row -->
+            <div class="util-row">
+                <button class="util-btn" onclick="goToMainMenu()">Main Menu</button>
+                <button class="util-btn reset-color" onclick="resetTournament()">Reset Tournament</button>
             </div>
         </div>
-
-        <!-- Utility Row -->
-        <div class="util-row">
-            <button class="util-btn" onclick="goToMainMenu()">Main Menu</button>
-            <button class="util-btn reset-color" onclick="resetTournament()">Reset Tournament</button>
-        </div>
     </div>
-</div>
 
-<script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
-    let masterRoster = [], players = [], pairings = [], currentRound = 1, totalRounds = 0, format = '', history = [];
-    let tournamentName = '';
-    let playedPairs = new Set(); 
-    let receivedBye = new Set();
-    let rrSchedules = []; 
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
+        let masterRoster = [],
+            players = [],
+            pairings = [],
+            currentRound = 1,
+            totalRounds = 0,
+            format = '',
+            history = [];
+        let tournamentName = '',
+            timeControl = 'regular';
+        let playedPairs = new Set();
+        let receivedBye = new Set();
+        let rrSchedules = [];
 
-    async function load() {
-        try {
-            const response = await fetch(SCRIPT_URL);
-            const data = await response.json();
-            masterRoster = data.map(p => {
-                const nameStr = p[0];
-                const rawRating = p[1];
-                let rating = 0; 
-                if (rawRating !== undefined && rawRating !== null && rawRating !== '') {
-                    const parsed = parseInt(rawRating);
-                    if (!isNaN(parsed)) rating = parsed;
+        async function load() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+
+                // Map the entire sheet matrix: [Name, Regular, Quick, Blitz]
+                masterRoster = data.map(p => {
+                    return {
+                        id: p[0],
+                        name: p[0],
+                        ratings: {
+                            regular: parseRating(p[1]),
+                            quick: parseRating(p[2]),
+                            blitz: parseRating(p[3])
+                        },
+                        rating: 0,
+                        score: 0,
+                        colorScore: 0,
+                        colorHistory: []
+                    };
+                });
+
+                loadState();
+                if (players.length === 0) {
+                    updateRosterRatings();
                 }
-                return { name: nameStr, rating: rating, score: 0, id: nameStr, colorScore: 0, colorHistory: [] };
-            });
-            
-            populateRosterDOM();
-            loadState();
-        } catch (e) {
-            console.error("Error loading roster data:", e);
-            loadState();
-        }
-    }
-
-    function populateRosterDOM() {
-        document.getElementById('roster-list').innerHTML = masterRoster.map(p => {
-            const displayRating = p.rating === 0 ? 'UNR' : p.rating;
-            return `<label class="p-label"><input type="checkbox" class="p-select" value="${p.id}"> ${p.name} (${displayRating})</label>`;
-        }).join('');
-    }
-
-    function toggleRounds() { 
-        document.getElementById('rnd-count').style.display = document.getElementById('fmt').value === 'rr' ? 'none' : 'block'; 
-    }
-
-    function saveState() {
-        const state = {
-            tournamentName,
-            players,
-            pairings,
-            currentRound,
-            totalRounds,
-            format,
-            history,
-            playedPairs: Array.from(playedPairs),
-            receivedBye: Array.from(receivedBye),
-            rrSchedules
-        };
-        localStorage.setItem('chess_tournament_state', JSON.stringify(state));
-    }
-
-    function loadState() {
-        const saved = localStorage.getItem('chess_tournament_state');
-        if (!saved) return;
-
-        try {
-            const state = JSON.parse(saved);
-            tournamentName = state.tournamentName || '';
-            players = state.players || [];
-            pairings = state.pairings || [];
-            currentRound = state.currentRound || 1;
-            totalRounds = state.totalRounds || 0;
-            format = state.format || 'swiss';
-            history = state.history || [];
-            playedPairs = new Set(state.playedPairs || []);
-            receivedBye = new Set(state.receivedBye || []);
-            rrSchedules = state.rrSchedules || [];
-
-            document.getElementById('t-name-input').value = tournamentName;
-
-            if (players.length > 0) {
-                document.getElementById('setup-view').style.display = 'none';
-                document.getElementById('active-view').style.display = 'block';
-                document.getElementById('t-name-display').innerText = tournamentName;
-                
-                if (currentRound > totalRounds || (format === 'rr' && currentRound > totalRounds)) {
-                    document.getElementById('round-title').innerText = "Tournament Complete";
-                    document.getElementById('pairings-list').innerHTML = "";
-                    document.getElementById('next-btn').style.display = 'none';
-                    document.getElementById('dl-btn').style.display = 'block';
+            } catch (e) {
+                console.error("Error loading roster data:", e);
+                loadState();
+                if (players.length === 0) {
+                    updateRosterRatings();
                 }
-                render();
             }
-        } catch (e) {
-            console.error("Failed to parse restored tournament state", e);
-        }
-    }
-
-    function startTournament() {
-        const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
-        if(selectedIds.length < 2) return alert("Select at least 2 players");
-        
-        tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
-        format = document.getElementById('fmt').value;
-        players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({...p, score: 0, colorScore: 0, colorHistory: []}));
-        
-        currentRound = 1;
-        history = [];
-        playedPairs.clear();
-        receivedBye.clear();
-        rrSchedules = [];
-
-        if (format === 'rr') {
-            totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
-            generateRoundRobinSchedules();
-        } else {
-            totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
         }
 
-        pairings = generatePairings();
-        document.getElementById('setup-view').style.display = 'none';
-        document.getElementById('active-view').style.display = 'block';
-        document.getElementById('t-name-display').innerText = tournamentName;
-        document.getElementById('dl-btn').style.display = 'none';
-        
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) { 
-            elem.requestFullscreen().catch(() => {}); 
-        } else if (elem.webkitRequestFullscreen) { 
-            elem.webkitRequestFullscreen(); 
+        function parseRating(val) {
+            if (val === undefined || val === null || val === '') return 0;
+            const parsed = parseInt(val);
+            return isNaN(parsed) ? 0 : parsed;
         }
 
-        saveState();
-        render();
-    }
+        function updateRosterRatings() {
+            timeControl = document.getElementById('tc-select').value;
 
-    function generateRoundRobinSchedules() {
-        let list = [...players].sort((a, b) => b.rating - a.rating);
-        if (list.length % 2 !== 0) {
-            list.push({ name: "BYE", id: "BYE_DUMMY", rating: 0, score: 0 });
+            // Update the flat rating key for each master entry using active time control
+            masterRoster.forEach(p => {
+                p.rating = p.ratings[timeControl];
+            });
+
+            // Track user selections across rating conversions
+            const checkedMap = {};
+            document.querySelectorAll('.p-select').forEach(cb => {
+                checkedMap[cb.value] = cb.checked;
+            });
+
+            document.getElementById('roster-list').innerHTML = masterRoster.map(p => {
+                const displayRating = p.rating === 0 ? 'UNR' : p.rating;
+                const isChecked = checkedMap[p.id] ? 'checked' : '';
+                return `<label class="p-label"><input type="checkbox" class="p-select" value="${p.id}" ${isChecked}> ${p.name} (${displayRating})</label>`;
+            }).join('');
         }
-        const roundsCount = list.length - 1;
-        const half = list.length / 2;
 
-        for (let r = 0; r < roundsCount; r++) {
-            let roundPairings = [];
-            for (let i = 0; i < half; i++) {
-                const p1 = list[i];
-                const p2 = list[list.length - 1 - i];
-                
-                if (p1.id !== "BYE_DUMMY" && p2.id !== "BYE_DUMMY") {
-                    // Balance alternating round robin colors across rounds
-                    if ((i + r) % 2 === 0) {
-                        roundPairings.push({ w: p1, b: p2, res: null });
-                    } else {
-                        roundPairings.push({ w: p2, b: p1, res: null });
+        function toggleRounds() {
+            document.getElementById('rnd-count').style.display = document.getElementById('fmt').value === 'rr' ? 'none' : 'block';
+        }
+
+        function saveState() {
+            const state = {
+                tournamentName,
+                timeControl,
+                players,
+                pairings,
+                currentRound,
+                totalRounds,
+                format,
+                history,
+                playedPairs: Array.from(playedPairs),
+                receivedBye: Array.from(receivedBye),
+                rrSchedules
+            };
+            localStorage.setItem('chess_tournament_state', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('chess_tournament_state');
+            if (!saved) return;
+
+            try {
+                const state = JSON.parse(saved);
+                tournamentName = state.tournamentName || '';
+                timeControl = state.timeControl || 'regular';
+                players = state.players || [];
+                pairings = state.pairings || [];
+                currentRound = state.currentRound || 1;
+                totalRounds = state.totalRounds || 0;
+                format = state.format || 'swiss';
+                history = state.history || [];
+                playedPairs = new Set(state.playedPairs || []);
+                receivedBye = new Set(state.receivedBye || []);
+                rrSchedules = state.rrSchedules || [];
+
+                document.getElementById('t-name-input').value = tournamentName;
+                document.getElementById('tc-select').value = timeControl;
+
+                if (players.length > 0) {
+                    document.getElementById('setup-view').style.display = 'none';
+                    document.getElementById('active-view').style.display = 'block';
+                    document.getElementById('t-name-display').innerText = tournamentName;
+                    document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
+
+                    if (currentRound > totalRounds || (format === 'rr' && currentRound > totalRounds)) {
+                        document.getElementById('round-title').innerText = "Tournament Complete";
+                        document.getElementById('pairings-list').innerHTML = "";
+                        document.getElementById('next-btn').style.display = 'none';
+                        document.getElementById('dl-btn').style.display = 'block';
                     }
+                    render();
                 } else {
-                    const receiver = p1.id === "BYE_DUMMY" ? p2 : p1;
-                    roundPairings.push({ w: receiver, b: { name: "BYE", id: "BYE_DUMMY", rating: 0 }, res: "bye_win" });
+                    updateRosterRatings();
                 }
+            } catch (e) {
+                console.error("Failed to parse restored tournament state", e);
+                updateRosterRatings();
             }
-            rrSchedules.push(roundPairings);
-            list.splice(1, 0, list.pop());
-        }
-    }
-
-    // USCF SWISS PAIRING ENGINE WRAPPER
-    function generatePairings() {
-        if (format === 'rr') {
-            return rrSchedules[currentRound - 1] || [];
         }
 
-        let pool = [...players].sort((a, b) => b.rating - a.rating);
-        let roundPairings = [];
-        
-        // 1. Assign Bye if field length is odd (Lowest rating within lowest score bracket)
-        if (pool.length % 2 !== 0) {
-            pool.sort((a, b) => {
-                if (a.score !== b.score) return a.score - b.score; 
-                return a.rating - b.rating; 
+        function startTournament() {
+            const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
+            if (selectedIds.length < 2) return alert("Select at least 2 players");
+
+            tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
+            timeControl = document.getElementById('tc-select').value;
+            format = document.getElementById('fmt').value;
+
+            // Finalize active profile ratings for execution
+            players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
+                id: p.id,
+                name: p.name,
+                rating: p.ratings[timeControl],
+                score: 0,
+                colorScore: 0,
+                colorHistory: []
+            }));
+
+            currentRound = 1;
+            history = [];
+            playedPairs.clear();
+            receivedBye.clear();
+            rrSchedules = [];
+
+            if (format === 'rr') {
+                totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
+                generateRoundRobinSchedules();
+            } else {
+                totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
+            }
+
+            pairings = generatePairings();
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('active-view').style.display = 'block';
+            document.getElementById('t-name-display').innerText = tournamentName;
+            document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
+            document.getElementById('dl-btn').style.display = 'none';
+
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            }
+
+            saveState();
+            render();
+        }
+
+        function generateRoundRobinSchedules() {
+            let list = [...players].sort((a, b) => b.rating - a.rating);
+            if (list.length % 2 !== 0) {
+                list.push({
+                    name: "BYE",
+                    id: "BYE_DUMMY",
+                    rating: 0,
+                    score: 0
+                });
+            }
+            const roundsCount = list.length - 1;
+            const half = list.length / 2;
+
+            for (let r = 0; r < roundsCount; r++) {
+                let roundPairings = [];
+                for (let i = 0; i < half; i++) {
+                    const p1 = list[i];
+                    const p2 = list[list.length - 1 - i];
+
+                    if (p1.id !== "BYE_DUMMY" && p2.id !== "BYE_DUMMY") {
+                        if ((i + r) % 2 === 0) {
+                            roundPairings.push({
+                                w: p1,
+                                b: p2,
+                                res: null
+                            });
+                        } else {
+                            roundPairings.push({
+                                w: p2,
+                                b: p1,
+                                res: null
+                            });
+                        }
+                    } else {
+                        const receiver = p1.id === "BYE_DUMMY" ? p2 : p1;
+                        roundPairings.push({
+                            w: receiver,
+                            b: {
+                                name: "BYE",
+                                id: "BYE_DUMMY",
+                                rating: 0
+                            },
+                            res: "bye_win"
+                        });
+                    }
+                }
+                rrSchedules.push(roundPairings);
+                list.splice(1, 0, list.pop());
+            }
+        }
+
+        function generatePairings() {
+            if (format === 'rr') {
+                return rrSchedules[currentRound - 1] || [];
+            }
+
+            let pool = [...players].sort((a, b) => b.rating - a.rating);
+            let roundPairings = [];
+
+            if (pool.length % 2 !== 0) {
+                pool.sort((a, b) => {
+                    if (a.score !== b.score) return a.score - b.score;
+                    return a.rating - b.rating;
+                });
+
+                let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
+                if (byeIndex === -1) byeIndex = 0;
+
+                let byePlayer = pool.splice(byeIndex, 1)[0];
+                roundPairings.push({
+                    w: byePlayer,
+                    b: {
+                        name: "BYE",
+                        id: "BYE_DUMMY",
+                        rating: 0
+                    },
+                    res: "bye_win"
+                });
+            }
+
+            let scoreGroupsMap = {};
+            pool.forEach(p => {
+                if (!scoreGroupsMap[p.score]) scoreGroupsMap[p.score] = [];
+                scoreGroupsMap[p.score].push(p);
             });
-            
-            let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
-            if (byeIndex === -1) byeIndex = 0; 
-            
-            let byePlayer = pool.splice(byeIndex, 1)[0];
-            roundPairings.push({ w: byePlayer, b: { name: "BYE", id: "BYE_DUMMY", rating: 0 }, res: "bye_win" });
-        }
 
-        // 2. Separate remaining pool into clean USCF isolated score group arrays
-        let scoreGroupsMap = {};
-        pool.forEach(p => {
-            if (!scoreGroupsMap[p.score]) scoreGroupsMap[p.score] = [];
-            scoreGroupsMap[p.score].push(p);
-        });
+            let sortedScores = Object.keys(scoreGroupsMap).map(Number).sort((a, b) => b - a);
+            let formattedPoolGroups = sortedScores.map(score => {
+                return scoreGroupsMap[score].sort((a, b) => b.rating - a.rating);
+            });
 
-        // Sorted score groups keys downwards (e.g. 2.0, 1.5, 1.0)
-        let sortedScores = Object.keys(scoreGroupsMap).map(Number).sort((a, b) => b - a);
-        let formattedPoolGroups = sortedScores.map(score => {
-            return scoreGroupsMap[score].sort((a, b) => b.rating - a.rating);
-        });
+            let success = backtrackSwissBrackets(formattedPoolGroups, 0, roundPairings);
 
-        // 3. Process brackets sequentially down through backtracking
-        let success = backtrackSwissBrackets(formattedPoolGroups, 0, roundPairings);
-        
-        // Ultimate emergency fallback if backtracking hits zero legal options due to extensive history locks
-        if (!success) {
-            console.warn("USCF Exact Brackets locked. Executing fallback pairing sequence.");
-            let finalFlatPool = [];
-            formattedPoolGroups.forEach(g => finalFlatPool.push(...g));
-            finalFlatPool.sort((a, b) => b.score - a.score || b.rating - a.rating);
-            
-            for (let i = 0; i < finalFlatPool.length; i += 2) {
-                if (finalFlatPool[i + 1]) {
-                    let p1 = finalFlatPool[i];
-                    let p2 = finalFlatPool[i + 1];
-                    let colors = determineColors(p1, p2);
-                    roundPairings.unshift({ w: colors.w, b: colors.b, res: null });
+            if (!success) {
+                let finalFlatPool = [];
+                formattedPoolGroups.forEach(g => finalFlatPool.push(...g));
+                finalFlatPool.sort((a, b) => b.score - a.score || b.rating - a.rating);
+
+                for (let i = 0; i < finalFlatPool.length; i += 2) {
+                    if (finalFlatPool[i + 1]) {
+                        let p1 = finalFlatPool[i];
+                        let p2 = finalFlatPool[i + 1];
+                        let colors = determineColors(p1, p2);
+                        roundPairings.unshift({
+                            w: colors.w,
+                            b: colors.b,
+                            res: null
+                        });
+                    }
                 }
             }
+
+            return roundPairings;
         }
 
-        return roundPairings;
-    }
+        function backtrackSwissBrackets(groups, groupIdx, currentPairings) {
+            if (groupIdx >= groups.length) return true;
+            if (groups[groupIdx].length === 0) return backtrackSwissBrackets(groups, groupIdx + 1, currentPairings);
 
-    // Backtracks through structured sub-group matrices to ensure proper top-vs-bottom pairing within isolated score groups
-    function backtrackSwissBrackets(groups, groupIdx, currentPairings) {
-        if (groupIdx >= groups.length) return true;
-        if (groups[groupIdx].length === 0) return backtrackSwissBrackets(groups, groupIdx + 1, currentPairings);
+            let currentGroup = groups[groupIdx];
 
-        let currentGroup = groups[groupIdx];
+            if (currentGroup.length % 2 !== 0) {
+                if (groupIdx === groups.length - 1) return false;
 
-        // If bracket length is odd, a player needs bumped down to the next existing score bracket down
-        if (currentGroup.length % 2 !== 0) {
-            if (groupIdx === groups.length - 1) {
-                // Cannot bump down from absolute bottom bracket. Rollback previous bracket.
+                for (let i = currentGroup.length - 1; i >= 0; i--) {
+                    let bumpedPlayer = currentGroup.splice(i, 1)[0];
+                    groups[groupIdx + 1].unshift(bumpedPlayer);
+                    groups[groupIdx + 1].sort((a, b) => b.rating - a.rating);
+
+                    if (pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
+                            currentPairings.push(...bracketPairs);
+                            if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
+                            for (let k = 0; k < bracketPairs.length; k++) currentPairings.pop();
+                            return false;
+                        })) {
+                        return true;
+                    }
+
+                    groups[groupIdx + 1] = groups[groupIdx + 1].filter(p => p.id !== bumpedPlayer.id);
+                    currentGroup.splice(i, 0, bumpedPlayer);
+                    currentGroup.sort((a, b) => b.rating - a.rating);
+                }
                 return false;
             }
-            
-            // Try every possible player in the bracket to serve as the bump down choice, starting from the bottom rated
-            for (let i = currentGroup.length - 1; i >= 0; i--) {
-                let bumpedPlayer = currentGroup.splice(i, 1)[0];
-                groups[groupIdx + 1].unshift(bumpedPlayer); // Add to top of next lower group
-                groups[groupIdx + 1].sort((a, b) => b.rating - a.rating);
-                
-                if (pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
-                    currentPairings.push(...bracketPairs);
-                    if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
-                    // Rollback pairings if downstream path breaks
-                    for(let k = 0; k < bracketPairs.length; k++) currentPairings.pop();
-                    return false;
-                })) {
-                    return true;
-                }
-                
-                // Rollback bump down modification if loop fails execution path
-                groups[groupIdx + 1] = groups[groupIdx + 1].filter(p => p.id !== bumpedPlayer.id);
-                currentGroup.splice(i, 0, bumpedPlayer);
-                currentGroup.sort((a, b) => b.rating - a.rating);
+
+            return pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
+                currentPairings.push(...bracketPairs);
+                if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
+                for (let k = 0; k < bracketPairs.length; k++) currentPairings.pop();
+                return false;
+            });
+        }
+
+        function pairSingleBracket(group, targetIdx, localPairs, successCallback) {
+            while (targetIdx < group.length && localPairs.some(p => p.w.id === group[targetIdx].id || p.b.id === group[targetIdx].id)) {
+                targetIdx++;
+            }
+
+            if (targetIdx >= group.length) return successCallback(localPairs);
+
+            let p1 = group[targetIdx];
+            let midOffset = Math.floor(group.length / 2);
+            let idealPartnerIdx = targetIdx + midOffset;
+
+            let searchOrder = [];
+            if (idealPartnerIdx < group.length && !localPairs.some(p => p.w.id === group[idealPartnerIdx].id || p.b.id === group[idealPartnerIdx].id)) {
+                searchOrder.push(idealPartnerIdx);
+            }
+            for (let i = 0; i < group.length; i++) {
+                if (i !== targetIdx && i !== idealPartnerIdx) searchOrder.push(i);
+            }
+
+            for (let idx of searchOrder) {
+                let p2 = group[idx];
+                if (localPairs.some(p => p.w.id === p2.id || p.b.id === p2.id)) continue;
+                if (playedPairs.has(`${p1.id}-${p2.id}`) || playedPairs.has(`${p2.id}-${p1.id}`)) continue;
+
+                let colors = determineColors(p1, p2);
+                localPairs.push({
+                    w: colors.w,
+                    b: colors.b,
+                    res: null
+                });
+
+                if (pairSingleBracket(group, targetIdx + 1, localPairs, successCallback)) return true;
+                localPairs.pop();
             }
             return false;
         }
 
-        // Even bracket logic: pair it clean using top half vs bottom half structure
-        return pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
-            currentPairings.push(...bracketPairs);
-            if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
-            for(let k = 0; k < bracketPairs.length; k++) currentPairings.pop();
-            return false;
-        });
-    }
+        function determineColors(p1, p2) {
+            let diff1 = p1.colorScore;
+            let diff2 = p2.colorScore;
 
-    // Pairs an isolated score bracket by calculating true USCF top half vs bottom half offsets
-    function pairSingleBracket(group, targetIdx, localPairs, successCallback) {
-        // Find first available player in the bracket who is not yet paired
-        while (targetIdx < group.length && localPairs.some(p => p.w.id === group[targetIdx].id || p.b.id === group[targetIdx].id)) {
-            targetIdx++;
-        }
-        
-        if (targetIdx >= group.length) {
-            return successCallback(localPairs);
-        }
+            if (diff1 !== diff2) return diff1 > diff2 ? {
+                w: p2,
+                b: p1
+            } : {
+                w: p1,
+                b: p2
+            };
 
-        let p1 = group[targetIdx];
-        
-        // Calculate the optimal structural USCF offset partner index (top of bottom half)
-        let midOffset = Math.floor(group.length / 2);
-        let idealPartnerIdx = targetIdx + midOffset;
-        
-        // Build search order index list starting with ideal partner, then testing remainder sequentially
-        let searchOrder = [];
-        if (idealPartnerIdx < group.length && !localPairs.some(p => p.w.id === group[idealPartnerIdx].id || p.b.id === group[idealPartnerIdx].id)) {
-            searchOrder.push(idealPartnerIdx);
-        }
-        for (let i = 0; i < group.length; i++) {
-            if (i !== targetIdx && i !== idealPartnerIdx) searchOrder.push(i);
+            let lastColor1 = p1.colorHistory[p1.colorHistory.length - 1];
+            let lastColor2 = p2.colorHistory[p2.colorHistory.length - 1];
+
+            if (lastColor1 === 'W' && lastColor2 !== 'W') return {
+                w: p2,
+                b: p1
+            };
+            if (lastColor1 === 'B' && lastColor2 !== 'B') return {
+                w: p1,
+                b: p2
+            };
+
+            return Math.random() < 0.5 ? {
+                w: p1,
+                b: p2
+            } : {
+                w: p2,
+                b: p1
+            };
         }
 
-        for (let idx of searchOrder) {
-            let p2 = group[idx];
-            
-            // Safety confirmation check that candidate partner is completely free
-            if (localPairs.some(p => p.w.id === p2.id || p.b.id === p2.id)) continue;
+        function formatScore(score) {
+            if (score === 0) return "0";
+            if (score % 1 === 0) return score.toString();
+            let whole = Math.floor(score);
+            return whole > 0 ? `${whole} 1/2` : "1/2";
+        }
 
-            // Enforce repeat match rule
-            if (playedPairs.has(`${p1.id}-${p2.id}`) || playedPairs.has(`${p2.id}-${p1.id}`)) continue;
-
-            let colors = determineColors(p1, p2);
-            localPairs.push({ w: colors.w, b: colors.b, res: null });
-
-            if (pairSingleBracket(group, targetIdx + 1, localPairs, successCallback)) {
-                return true;
+        function render() {
+            if (currentRound <= totalRounds) {
+                document.getElementById('round-title').innerText = `Round ${currentRound} of ${totalRounds}`;
             }
-            localPairs.pop(); // Standard backtrack unwinding
-        }
-        return false;
-    }
 
-    // Analyzes USCF color properties to assign White and Black optimally
-    function determineColors(p1, p2) {
-        let diff1 = p1.colorScore;
-        let diff2 = p2.colorScore;
-
-        // Condition A: If color counts differ, balance out whoever has a larger disparity
-        if (diff1 !== diff2) {
-            return diff1 > diff2 ? { w: p2, b: p1 } : { w: p1, b: p2 };
-        }
-
-        // Condition B: Balance against their immediate historical color from previous round
-        let lastColor1 = p1.colorHistory[p1.colorHistory.length - 1];
-        let lastColor2 = p2.colorHistory[p2.colorHistory.length - 1];
-
-        if (lastColor1 === 'W' && lastColor2 !== 'W') return { w: p2, b: p1 };
-        if (lastColor1 === 'B' && lastColor2 !== 'B') return { w: p1, b: p2 };
-
-        // Fallback default if histories match perfectly
-        return Math.random() < 0.5 ? { w: p1, b: p2 } : { w: p2, b: p1 };
-    }
-
-    function formatScore(score) {
-        if (score === 0) return "0";
-        if (score % 1 === 0) return score.toString();
-        let whole = Math.floor(score);
-        return whole > 0 ? `${whole} 1/2` : "1/2";
-    }
-
-    function render() {
-        if (currentRound <= totalRounds) {
-            document.getElementById('round-title').innerText = `Round ${currentRound} of ${totalRounds}`;
-        }
-        
-        document.getElementById('pairings-list').innerHTML = pairings.map((m, i) => {
-            if (m.res === "bye_win") {
-                return `
+            document.getElementById('pairings-list').innerHTML = pairings.map((m, i) => {
+                if (m.res === "bye_win") {
+                    return `
                 <div class="match-card" style="border-left-color: var(--go);">
                     <div><strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) has a <strong>BYE</strong></div>
                     <div style="font-size: 0.85rem; color: var(--go); margin-top: 5px;">+1.0 Point Auto-Assigned</div>
                 </div>`;
-            }
-            return `
+                }
+                return `
             <div class="match-card">
                 <div>
                     <strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) <span style="color:#888;">(W)</span>
@@ -540,131 +654,138 @@
                     <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0 - 1</button>
                 </div>
             </div>`;
-        }).join('');
-        
-        document.getElementById('standings-list').innerHTML = [...players].sort((a,b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return b.rating - a.rating;
-        }).map(p => `
+            }).join('');
+
+            document.getElementById('standings-list').innerHTML = [...players].sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return b.rating - a.rating;
+            }).map(p => `
             <div style="display:flex; justify-content:space-between; padding:4px 0;">
                 <span>${p.name} (${p.rating === 0 ? 'UNR' : p.rating})</span>
                 <span>${formatScore(p.score)}</span>
             </div>`).join('');
-            
-        document.getElementById('next-btn').style.display = pairings.every(m => m.res !== null) && pairings.length > 0 && currentRound <= totalRounds ? 'block' : 'none';
-    }
 
-    function setRes(i, res) { 
-        pairings[i].res = res; 
-        saveState();
-        render(); 
-    }
+            document.getElementById('next-btn').style.display = pairings.every(m => m.res !== null) && pairings.length > 0 && currentRound <= totalRounds ? 'block' : 'none';
+        }
 
-    function processRound() {
-        history.push({ round: currentRound, matches: JSON.parse(JSON.stringify(pairings)) });
-        
-        pairings.forEach(m => {
-            if (m.b.id !== "BYE_DUMMY") {
-                playedPairs.add(`${m.w.id}-${m.b.id}`);
-                
-                // Log and update structural USCF color data points
-                m.w.colorHistory.push('W');
-                m.w.colorScore += 1;
-                m.b.colorHistory.push('B');
-                m.b.colorScore -= 1;
-            } else {
-                receivedBye.add(m.w.id);
-            }
-            
-            if(m.res === 'w' || m.res === 'bye_win') {
-                m.w.score += 1;
-            } else if(m.res === 'd') { 
-                m.w.score += 0.5; 
-                m.b.score += 0.5; 
-            } else if(m.res === 'b') {
-                m.b.score += 1;
-            }
-        });
-
-        if(currentRound >= totalRounds) {
-            document.getElementById('round-title').innerText = "Tournament Complete";
-            document.getElementById('pairings-list').innerHTML = "";
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('dl-btn').style.display = 'block';
-            saveState();
-            render();
-        } else {
-            currentRound++;
-            pairings = generatePairings();
+        function setRes(i, res) {
+            pairings[i].res = res;
             saveState();
             render();
         }
-    }
 
-    function downloadResults() {
-        let content = `TOURNAMENT REPORT: ${tournamentName.toUpperCase()}\n`;
-        content += "=".repeat(content.length - 1) + "\n\n";
-        
-        history.forEach(r => {
-            content += `ROUND ${r.round}\n`;
-            r.matches.forEach(m => {
-                let displayRes = m.res;
-                if (m.res === 'w') displayRes = "1-0";
-                if (m.res === 'd') displayRes = "1/2-1/2";
-                if (m.res === 'b') displayRes = "0-1";
-                if (m.res === 'bye_win') displayRes = "BYE (1-0)";
-                
-                const wRating = m.w.rating === 0 ? 'UNR' : m.w.rating;
-                const bRating = m.b.rating === 0 ? 'UNR' : m.b.rating;
-                content += `${m.w.name} (${wRating}) vs ${m.b.name} (${bRating}) - Result: ${displayRes}\n`;
+        function processRound() {
+            history.push({
+                round: currentRound,
+                matches: JSON.parse(JSON.stringify(pairings))
             });
-            content += "\n";
-        });
-        
-        content += "FINAL STANDINGS\n" + [...players].sort((a,b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return b.rating - a.rating;
-        }).map(p => `${p.name} (${p.rating === 0 ? 'UNR' : p.rating}): ${formatScore(p.score)}`).join("\n");
-        
-        const blob = new Blob([content], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        
-        const safeName = tournamentName.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-        a.download = `${safeName}_results.txt`;
-        
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
 
-    function goToMainMenu() {
-        window.location.href = 'index.html';
-    }
+            pairings.forEach(m => {
+                if (m.b.id !== "BYE_DUMMY") {
+                    playedPairs.add(`${m.w.id}-${m.b.id}`);
+                    m.w.colorHistory.push('W');
+                    m.w.colorScore += 1;
+                    m.b.colorHistory.push('B');
+                    m.b.colorScore -= 1;
+                } else {
+                    receivedBye.add(m.w.id);
+                }
 
-    function resetTournament() {
-        if(!confirm("Are you sure you want to reset and clear all data?")) return;
-        
-        localStorage.removeItem('chess_tournament_state');
-        
-        document.getElementById('active-view').style.display = 'none';
-        document.getElementById('setup-view').style.display = 'block';
-        document.getElementById('dl-btn').style.display = 'none';
-        document.getElementById('t-name-input').value = '';
-        document.getElementById('t-name-display').innerText = '';
-        
-        tournamentName = '';
-        currentRound = 1;
-        players = [];
-        pairings = [];
-        history = [];
-        playedPairs.clear();
-        receivedBye.clear();
-        rrSchedules = [];
-        populateRosterDOM();
-    }
+                if (m.res === 'w' || m.res === 'bye_win') {
+                    m.w.score += 1;
+                } else if (m.res === 'd') {
+                    m.w.score += 0.5;
+                    m.b.score += 0.5;
+                    m.b.score += 1;
+                }
+            });
 
-    window.onload = load;
-</script>
+            if (currentRound >= totalRounds) {
+                document.getElementById('round-title').innerText = "Tournament Complete";
+                document.getElementById('pairings-list').innerHTML = "";
+                document.getElementById('next-btn').style.display = 'none';
+                document.getElementById('dl-btn').style.display = 'block';
+                saveState();
+                render();
+            } else {
+                currentRound++;
+                pairings = generatePairings();
+                saveState();
+                render();
+            }
+        }
+
+        function downloadResults() {
+            let content = `TOURNAMENT REPORT: ${tournamentName.toUpperCase()}\n`;
+            content += `TIME CONTROL TYPE: ${timeControl.toUpperCase()}\n`;
+            content += "=".repeat(content.length - 2) + "\n\n";
+
+            history.forEach(r => {
+                content += `ROUND ${r.round}\n`;
+                r.matches.forEach(m => {
+                    let displayRes = m.res;
+                    if (m.res === 'w') displayRes = "1-0";
+                    if (m.res === 'd') displayRes = "1/2-1/2";
+                    if (m.res === 'b') displayRes = "0-1";
+                    if (m.res === 'bye_win') displayRes = "BYE (1-0)";
+
+                    const wRating = m.w.rating === 0 ? 'UNR' : m.w.rating;
+                    const bRating = m.b.rating === 0 ? 'UNR' : m.b.rating;
+                    content += `${m.w.name} (${wRating}) vs ${m.b.name} (${bRating}) - Result: ${displayRes}\n`;
+                });
+                content += "\n";
+            });
+
+            content += "FINAL STANDINGS\n" + [...players].sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return b.rating - a.rating;
+            }).map(p => `${p.name} (${p.rating === 0 ? 'UNR' : p.rating}): ${formatScore(p.score)}`).join("\n");
+
+            const blob = new Blob([content], {
+                type: 'text/plain'
+            });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+
+            const safeName = tournamentName.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+            a.download = `${safeName}_results.txt`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function goToMainMenu() {
+            window.location.href = 'index.html';
+        }
+
+        function resetTournament() {
+            if (!confirm("Are you sure you want to reset and clear all data?")) return;
+
+            localStorage.removeItem('chess_tournament_state');
+
+            document.getElementById('active-view').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+            document.getElementById('dl-btn').style.display = 'none';
+            document.getElementById('t-name-input').value = '';
+            document.getElementById('t-name-display').innerText = '';
+            document.getElementById('t-meta-display').innerText = '';
+            document.getElementById('tc-select').value = 'regular';
+
+            tournamentName = '';
+            timeControl = 'regular';
+            currentRound = 1;
+            players = [];
+            pairings = [];
+            history = [];
+            playedPairs.clear();
+            receivedBye.clear();
+            rrSchedules = [];
+            updateRosterRatings();
+        }
+
+        window.onload = load;
+    </script>
 </body>
+
 </html>
