@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chess League Calendar</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #111;
+        color: #eee;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+
+    .event {
+        background: #1c1c1c;
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border-left: 5px solid #4caf50;
+    }
+
+    .event.closed {
+        border-left-color: #e53935;
+    }
+
+    .event.tournament {
+        border-left-color: #2196f3;
+    }
+
+    .event-date {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .event-note {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Club Calendar</h1>
+<div id="events"></div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M/export?format=csv&gid=1202999770";
+
+// Helper: convert "June 19th" → Date object
+function parseEventDate(monthWord, dayWord) {
+    const month = new Date(`${monthWord} 1, 2024`).getMonth(); 
+    const day = parseInt(dayWord.replace(/\D/g, "")); 
+    const year = new Date().getFullYear();
+    return new Date(year, month, day);
+}
+
+fetch(CSV_URL)
+    .then(r => r.text())
+    .then(text => {
+        const rows = text.split("\n").map(r => r.split(","));
+        const eventsDiv = document.getElementById("events");
+        const seen = new Set();
+
+        const rowCount = rows.length;
+        const colCount = rows[0].length;
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        // READ DOWN EACH COLUMN
+        for (let c = 0; c < colCount; c++) {
+            for (let r = 0; r < rowCount; r++) {
+
+                let cell = rows[r][c];
+                if (!cell) continue;
+
+                cell = cell.replace(/\r/g, "").trim();
+                if (!cell) continue;
+
+                const firstLine = cell.split("\n").map(x => x.trim()).filter(x => x)[0];
+                if (!firstLine) continue;
+
+                if (seen.has(firstLine)) continue;
+                seen.add(firstLine);
+
+                const words = firstLine.split(" ");
+                if (words.length < 3) continue;
+
+                const monthWord = words[0];
+                const dayWord = words[1];
+                const note = words.slice(2).join(" ");
+
+                // Convert to real date
+                const eventDate = parseEventDate(monthWord, dayWord);
+
+                // Skip past dates
+                if (eventDate < today) continue;
+
+                const date = monthWord + " " + dayWord;
+
+                let cls = "event";
+                const lower = note.toLowerCase();
+                if (lower.includes("closed")) cls += " closed";
+                if (lower.includes("tournament")) cls += " tournament";
+
+                const div = document.createElement("div");
+                div.className = cls;
+                div.innerHTML = `
+                    <div class="event-date">${date}</div>
+                    <div class="event-note">${note}</div>
+                `;
+
+                eventsDiv.appendChild(div);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
