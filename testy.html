@@ -207,7 +207,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhunaAyEh9Addw7xpNk07xtQ5aukknizKurB7gyoi41j_cavo9grKb0Sqnm3d2u3W_0A/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzU3yQ60QE9Yz7vi3ySzR98ltYVTZD9A1cT6oiJ9LleEJObigLwKtHXRWKFQKrq1s_E-A/exec';
         let masterRoster = [],
             players = [],
             pairings = [],
@@ -375,16 +375,13 @@
 // Inside startTournament()
 fetch(SCRIPT_URL, {
     method: 'POST',
-    // Remove mode: 'no-cors' if you want to handle errors/success
-    // Ensure your Apps Script is deployed to allow access to 'Anyone'
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
         action: 'saveTournament',
         name: tournamentName,
         format: format,
         tc: timeControl,
-        state: { // Pass the object directly, not stringified
-            tournamentName,
+        state: {tournamentName,
             timeControl,
             players,
             pairings,
