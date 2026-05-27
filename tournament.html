@@ -236,9 +236,10 @@ async function load() {
                 id: p[0],
                 name: p[0],
                 ratings: {
-                    regular: parseRating(p[1]),
-                    quick: parseRating(p[2]),
-                    blitz: parseRating(p[3])
+                    regular: parseRating(p[1] || 0),
+quick: parseRating(p[2] || 0),
+blitz: parseRating(p[3] || 0)
+
                 },
                 rating: 0,
                 score: 0,
