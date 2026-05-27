@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tournament Results</title>
 
@@ -27,6 +28,7 @@
         border-radius: 8px;
         cursor: pointer;
         border-left: 5px solid #4caf50;
+        transition: background 0.2s ease;
     }
 
     .tournament:hover {
@@ -42,6 +44,7 @@
         justify-content: center;
         align-items: center;
         padding: 20px;
+        box-sizing: border-box;
     }
 
     #modalContent {
@@ -51,7 +54,8 @@
         max-height: 90%;
         overflow-y: auto;
         width: 100%;
-        max-width: 600px;
+        max-width: 800px;
+        box-sizing: border-box;
     }
 
     table {
@@ -73,11 +77,13 @@
 
     #closeBtn {
         background: #e53935;
+        color: #fff;
         padding: 10px 15px;
         border-radius: 6px;
         cursor: pointer;
         float: right;
         margin-bottom: 10px;
+        font-weight: bold;
     }
 </style>
 </head>
@@ -97,26 +103,36 @@
 
 <script>
 const FILE_ID = "1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M";
-const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?`;
+// Fetching the public edit URL lets us parse the underlying bootstrapData for sheet names and gids
+const SH_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`;
 
-fetch(GVIZ_URL)
+fetch(SH_URL)
     .then(r => r.text())
     .then(text => {
-        // Extract sheet info
-        const matches = [...text.matchAll(/"sheetId":(\d+),"title":"(.*?)"/g)];
+        // Find Google's internal JSON-like bootstrap configuration block
+        const match = text.match(/bootstrapData\s*=\s*([\s\S]*?);/);
+        if (!match) {
+            console.error("Could not find spreadsheet metadata. Is the sheet public?");
+            return;
+        }
 
-        matches.forEach(m => {
+        const rawData = match[1];
+        // Regex patterns matching the spreadsheet metadata array signatures: [gid, "sheetName", ...]
+        const sheetMatches = [...rawData.matchAll(/\[(\d+),"(.*?)",/g)];
+
+        sheetMatches.forEach(m => {
             const gid = m[1];
             const title = m[2];
 
-            // Filter by date in title
+            // Filter for sheet titles that contain a date pattern (e.g., 12/5/24 or 05/26/2026)
             if (!title.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) return;
 
             addTournament(title, gid);
         });
-    });
+    })
+    .catch(err => console.error("Error loading sheet list:", err));
 
-// Add clickable tournament
+// Add clickable tournament list items
 function addTournament(title, gid) {
     const list = document.getElementById("list");
 
@@ -129,44 +145,73 @@ function addTournament(title, gid) {
     list.appendChild(div);
 }
 
-// Load CSV for one tournament
+// Load CSV data for the selected sheet tab
 function loadTournament(title, gid) {
     const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${gid}`;
 
     fetch(url)
         .then(r => r.text())
         .then(text => {
-            const rows = text.split("\n").map(r => r.split(",").map(x => x.trim()));
+            // Use a proper parser instead of line.split(",") so names like "Smith, John" stay intact
+            const rows = parseCSV(text);
             openModal(title, rows);
-        });
+        })
+        .catch(err => console.error("Error loading tournament data:", err));
 }
 
-// Build modal table
+// Robust custom CSV parser to correctly manage quoted strings containing commas
+function parseCSV(text) {
+    const lines = text.split(/\r?\n/);
+    return lines.map(line => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+            let char = line[i];
+            if (char === '"') {
+                inQuotes = !inQuotes; // Toggle quote tracking state
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result;
+    });
+}
+
+// Construct and show the modal HTML table
 function openModal(title, rows) {
     document.getElementById("modalTitle").textContent = title;
 
+    if (!rows || rows.length === 0 || (rows.length === 1 && rows[0][0] === "")) {
+        document.getElementById("modalTable").innerHTML = "<p>No data found in this sheet.</p>";
+        document.getElementById("modal").style.display = "flex";
+        return;
+    }
+
     let html = "<table><tr>";
-    rows[0].forEach(h => html += `<th>${h}</th>`);
+    // Build Headers
+    rows[0].forEach(h => {
+        let cleanHeader = h.replace(/^"|"$/g, '');
+        html += `<th>${cleanHeader}</th>`;
+    });
     html += "</tr>";
 
+    // Build Data Rows
     for (let i = 1; i < rows.length; i++) {
-        if (!rows[i].some(x => x)) continue;
-
-        let row = [...rows[i]];
-
-        // Merge split name columns
-        if (row.length >= 3 && row[1] && row[2]) {
-            if (!row[1].includes(",") && row[2]) {
-                row[1] = row[1] + ", " + row[2];
-                row.splice(2, 1);
-            }
-        }
-
-        // Remove quotes
-        if (row[1]) row[1] = row[1].replace(/"/g, "");
+        // Skip blank rows
+        if (rows[i].length === 0 || (rows[i].length === 1 && rows[i][0] === "")) continue;
 
         html += "<tr>";
-        row.forEach(cell => html += `<td>${cell}</td>`);
+        rows[i].forEach(cell => {
+            // Strip structural wrapping quotation marks out of CSV data strings
+            let cleanCell = cell.replace(/^"|"$/g, '');
+            html += `<td>${cleanCell}</td>`;
+        });
         html += "</tr>";
     }
 
@@ -176,6 +221,7 @@ function openModal(title, rows) {
     document.getElementById("modal").style.display = "flex";
 }
 
+// Modal closing event listener
 document.getElementById("closeBtn").onclick = () => {
     document.getElementById("modal").style.display = "none";
 };
