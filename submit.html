@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="asfa.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SUBMIT MATCH</title>
@@ -65,12 +66,12 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjRAIfxOg-ALCYPnoX8Bc7KQSHLLuScjmsHtcbdeaTDgELnkQ63Jl6tYNDEtqLb9E/exec';
+    
     let allPlayers = [];
 
     async function loadPlayers() {
         try {
-            const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
+            const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'GET', mode: 'cors' });
             allPlayers = await resp.json();
             updatePlayerDropdowns();
         } catch (e) { console.error("Load failed"); }
@@ -102,7 +103,7 @@
         };
         document.getElementById('confirmation-modal').style.display = 'flex';
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+            await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
             document.getElementById('modal-text').innerText = "Match submitted successfully!";
             clearForm();
         } catch (e) { document.getElementById('modal-text').innerText = "Network error"; }
