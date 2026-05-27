@@ -28,14 +28,15 @@
 </div>
 
 <div id="view-match">
-    <select id="format" onchange="updatePlayerDropdowns()">
+    <select id="format">
         <option value="Regular">Regular</option>
         <option value="Quick">Quick</option>
         <option value="Blitz">Blitz</option>
     </select>
+    
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
-        <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
+        <select id="p1-select"><option value="">P1</option></select>
+        <select id="p2-select"><option value="">P2</option></select>
     </div>
     
     <select id="opening">
@@ -57,9 +58,8 @@
     <select id="result">
         <option value="" disabled selected>Result...</option>
         <option value="1-0">1 - 0</option>
-         <option value="0.5-0.5">½ - ½</option>
+        <option value="0.5-0.5">½ - ½</option>
         <option value="0-1">0 - 1</option>
-       
     </select>
     <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
 </div>
@@ -77,23 +77,14 @@
     }
 
     function updatePlayerDropdowns() {
-        const f = document.getElementById('format').value;
-        const idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
-        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}" data-elo="${p[idx]||''}">${p[0]}</option>`).join('');
+        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}">${p[0]}</option>`).join('');
         document.getElementById('p1-select').innerHTML = opt;
         document.getElementById('p2-select').innerHTML = opt;
-    }
-
-    function updateEloField(p) {
-        const s = document.getElementById(p + '-select');
-        document.getElementById(p + 'elo').value = s.options[s.selectedIndex]?.getAttribute('data-elo') || '';
     }
 
     function clearForm() {
         document.getElementById('p1-select').value = "";
         document.getElementById('p2-select').value = "";
-        document.getElementById('p1elo').value = "";
-        document.getElementById('p2elo').value = "";
         document.getElementById('opening').selectedIndex = 0;
         document.getElementById('result').selectedIndex = 0;
     }
@@ -102,9 +93,7 @@
         const d = { 
             action: 'addMatch', 
             p1: document.getElementById('p1-select').value, 
-            p1elo: document.getElementById('p1elo').value, 
             p2: document.getElementById('p2-select').value, 
-            p2elo: document.getElementById('p2elo').value, 
             white: document.getElementById('p1-select').value, 
             black: document.getElementById('p2-select').value, 
             opening: document.getElementById('opening').value, 
