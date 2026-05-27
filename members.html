@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <!-- viewport-fit=cover tells the browser engine to use the absolute hardware screen edges -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
+
     <!-- THESE TWO META TAGS FORCE IOS TO STOP SHRINKING THE APP CANVAS ON LOAD -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+
     <title>SSCC MEMBERS</title>
     <style>
         :root {
@@ -24,13 +24,16 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100dvh; /* Dynamic viewport height locks perfectly to standalone app boundaries */
-            background-color: #000; 
-            overflow: hidden; /* Prevents layout bounce scrolling on mobile devices */
+            height: 100dvh;
+            /* Dynamic viewport height locks perfectly to standalone app boundaries */
+            background-color: #000;
+            overflow: hidden;
+            /* Prevents layout bounce scrolling on mobile devices */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
@@ -42,11 +45,13 @@
             bottom: 0;
             height: 100dvh;
             border: 4px solid #1e90ff;
-            border-radius: 12px; /* Smoothly curves all four corners */
+            border-radius: 12px;
+            /* Smoothly curves all four corners */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Ensures child elements don't spill past the curved corners */
-            
+            overflow: hidden;
+            /* Ensures child elements don't spill past the curved corners */
+
             /* Safe area padding keeps content cleanly out of the notch area while the border stays pinned to the glass edge */
             padding-top: env(safe-area-inset-top, 4px);
             padding-bottom: env(safe-area-inset-bottom, 4px);
@@ -54,14 +59,16 @@
             padding-right: env(safe-area-inset-right, 4px);
         }
 
-        .engine-box { 
+        .engine-box {
             flex: 1;
-            background: var(--bg); 
-            padding: 15px; 
+            background: var(--bg);
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* Vertically scroll inside the blue frame boundaries if roster grows */
-            overflow-x: hidden; /* Suppresses horizontal scrolling safely */
+            overflow-y: auto;
+            /* Vertically scroll inside the blue frame boundaries if roster grows */
+            overflow-x: hidden;
+            /* Suppresses horizontal scrolling safely */
         }
 
         header {
@@ -150,7 +157,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcZuWOsZ0eGdiZQYnbrsxWpq5s2yh7utaklmCSIyz9qT0zuSCaVrDrC_wTgm7z0glugA/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyP2h5xcbZoQtdaBDQBkGhwVQ_jsx9tu1-NeHxjsXegdIZEaxhsYMnC7TLeMpapUrPbIw/exec';
 
         function goTo(event, url) {
             event.preventDefault();
@@ -160,7 +167,10 @@
         async function loadPlayers() {
             const container = document.getElementById('player-list-container');
             try {
-                const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
+                const resp = await fetch(SCRIPT_URL, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
                 if (!resp.ok) throw new Error();
                 const allPlayers = await resp.json();
 
