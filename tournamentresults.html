@@ -1,151 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournament Test</title>
-
-<style>
-    body {
-        margin: 0;
-        background: #111;
-        color: #eee;
-        font-family: Arial, sans-serif;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        font-size: 28px;
-        margin-bottom: 20px;
-        color: #fff;
-    }
-
-    .tournament {
-        background: #1c1c1c;
-        padding: 15px;
-        margin-bottom: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        border-left: 5px solid #4caf50;
-    }
-
-    .tournament:hover {
-        background: #222;
-    }
-
-    #modal {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-
-    #modalContent {
-        background: #1c1c1c;
-        padding: 20px;
-        border-radius: 10px;
-        max-height: 90%;
-        overflow-y: auto;
-        width: 100%;
-        max-width: 600px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    th, td {
-        border: 1px solid #333;
-        padding: 8px;
-        text-align: left;
-    }
-
-    th {
-        background: #222;
-        font-weight: bold;
-    }
-
-    #closeBtn {
-        background: #e53935;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        float: right;
-        margin-bottom: 10px;
-    }
-</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Results</title>
+    <style>
+        body { margin: 0; background: #111; color: #eee; font-family: Arial, sans-serif; padding: 20px; }
+        h1 { text-align: center; color: #fff; }
+        .tournament { background: #1c1c1c; padding: 15px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; border-left: 5px solid #4caf50; }
+        .tournament:hover { background: #222; }
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; padding: 20px; }
+        #modalContent { background: #1c1c1c; padding: 20px; border-radius: 10px; max-height: 90%; overflow-y: auto; width: 100%; max-width: 600px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+        th { background: #222; }
+        #closeBtn { background: #e53935; padding: 10px 15px; border-radius: 6px; cursor: pointer; float: right; margin-bottom: 10px; }
+    </style>
 </head>
-
 <body>
 
-<h1>Tournament Test</h1>
-
-<div class="tournament" id="openBtn">
-    Open Tournament (gid 1862215426)
-</div>
+<h1>Tournament Results</h1>
+<div id="tournament-list"></div>
 
 <div id="modal">
     <div id="modalContent">
-        <div id="closeBtn">Close</div>
-        <h2 id="modalTitle">Tournament Results</h2>
+        <div id="closeBtn" onclick="document.getElementById('modal').style.display='none'">Close</div>
+        <h2 id="modalTitle">Results</h2>
         <div id="modalTable"></div>
     </div>
 </div>
 
 <script>
 const FILE_ID = "1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M";
-const GID = "1862215426";
 
-document.getElementById("openBtn").onclick = () => {
-    const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${GID}`;
+// ENSURE EVERY ITEM HAS A NAME AND A GID, SEPARATED BY COMMAS
+const tournaments = [
+    { name: "May Games 5/15/26", gid: "649864686" },
+    { name: "15 Minute Madness 3/27/26", gid: "843437158" },
+    { name: "Pizza Party Blitz 12/12/25", gid: "1862215426" },
+    { name: "Quick Championship 11/24/25", gid: "386344057" },
+    { name: "Bltz Championship 9/12/25", gid: "2135192775" },
+    { name: "Ice Cream Cool-Off 7/11/25", gid: "306370631" },
+    { name: "May Games 5/9/25", gid: "1953070257" },
+      { name: "15 Minute Madness 3/25/25", gid: "647986817" }
+];
 
+const container = document.getElementById("tournament-list");
+
+// This loop creates a button for EVERY item in the list above
+tournaments.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "tournament";
+    div.innerText = t.name;
+    div.onclick = () => loadTournament(t.gid, t.name);
+    container.appendChild(div);
+});
+
+function loadTournament(gid, title) {
+    const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${gid}`;
     fetch(url)
         .then(r => r.text())
         .then(text => {
             const rows = text.split("\n").map(r => r.split(",").map(x => x.trim()));
-
             let html = "<table><tr>";
+            
+            // Generate Header
             rows[0].forEach(h => html += `<th>${h}</th>`);
             html += "</tr>";
 
+            // Generate Rows
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i].some(x => x)) continue;
-
                 let row = [...rows[i]];
-
-                // FIX: merge split name columns
-                if (row.length >= 3 && row[1] && row[2]) {
-                    if (!row[1].includes(",") && row[2]) {
-                        row[1] = row[1] + ", " + row[2];
-                        row.splice(2, 1);
-                    }
+                
+                // Name merge logic
+                if (row.length >= 3 && row[1] && row[2] && !row[1].includes(",")) {
+                    row[1] = row[1] + ", " + row[2];
+                    row.splice(2, 1);
                 }
-
-                // REMOVE QUOTES FROM NAME
                 row[1] = row[1].replace(/"/g, "");
-
-                html += "<tr>";
-                row.forEach(cell => html += `<td>${cell}</td>`);
-                html += "</tr>";
+                
+                html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
             }
-
             html += "</table>";
-
+            document.getElementById("modalTitle").innerText = title;
             document.getElementById("modalTable").innerHTML = html;
             document.getElementById("modal").style.display = "flex";
         });
-};
-
-document.getElementById("closeBtn").onclick = () => {
-    document.getElementById("modal").style.display = "none";
-};
+}
 </script>
-
 </body>
 </html>
