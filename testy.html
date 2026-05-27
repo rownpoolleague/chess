@@ -817,7 +817,7 @@ fetch(SCRIPT_URL, {
         }
 
         window.onload = load;
-        async function saveTournamentToSheet() {
+       async function saveTournamentToSheet() {
     const payload = {
         action: 'saveTournament',
         name: tournamentName,
@@ -827,14 +827,16 @@ fetch(SCRIPT_URL, {
     };
 
     try {
-        await fetch(SCRIPT_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
+            mode: 'cors', // Essential: allows actual communication
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        const result = await response.text();
+        console.log("Server Response:", result);
     } catch (e) {
-        console.error("Failed to log tournament to sheet:", e);
+        console.error("Critical Failure:", e);
     }
 }
     </script>
