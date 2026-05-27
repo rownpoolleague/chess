@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+    <script src="config/appConfig.js"></script>
+
     <meta charset="UTF-8">
     <!-- viewport-fit=cover tells the browser engine to use the absolute hardware screen edges -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -157,7 +159,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyP2h5xcbZoQtdaBDQBkGhwVQ_jsx9tu1-NeHxjsXegdIZEaxhsYMnC7TLeMpapUrPbIw/exec';
+        
 
         function goTo(event, url) {
             event.preventDefault();
@@ -167,7 +169,7 @@
         async function loadPlayers() {
             const container = document.getElementById('player-list-container');
             try {
-                const resp = await fetch(SCRIPT_URL, {
+                const resp = await fetch(APP_CONFIG.SCRIPT_URL, {
                     method: 'GET',
                     mode: 'cors'
                 });
