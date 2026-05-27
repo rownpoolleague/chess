@@ -222,12 +222,12 @@
         let receivedBye = new Set();
         let rrSchedules = [];
 
-   async function load() {
+async function load() {
     try {
         const response = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=members", {
-    method: 'GET',
-    mode: 'cors'
-});
+            method: 'GET',
+            mode: 'cors'
+        });
 
         const data = await response.json();
 
@@ -259,6 +259,7 @@
         }
     }
 }
+
 
 
         function parseRating(val) {
