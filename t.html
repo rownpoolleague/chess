@@ -1,230 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournament Results</title>
+    <script src="asfa.js"></script>
+    <meta charset="UTF-8">
+    <title>Tournament Viewer</title>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
-<style>
-    body {
-        margin: 0;
-        background: #111;
-        color: #eee;
-        font-family: Arial, sans-serif;
-        padding: 20px;
-    }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    h1 {
-        text-align: center;
-        font-size: 28px;
-        margin-bottom: 20px;
-        color: #fff;
-    }
+        .round {
+            background: #1c1c1c;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
 
-    .tournament {
-        background: #1c1c1c;
-        padding: 15px;
-        margin-bottom: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        border-left: 5px solid #4caf50;
-        transition: background 0.2s ease;
-    }
+        .round h2 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
 
-    .tournament:hover {
-        background: #222;
-    }
+        .pairing {
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
 
-    #modal {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        box-sizing: border-box;
-    }
+        .pairing:last-child {
+            border-bottom: none;
+        }
 
-    #modalContent {
-        background: #1c1c1c;
-        padding: 20px;
-        border-radius: 10px;
-        max-height: 90%;
-        overflow-y: auto;
-        width: 100%;
-        max-width: 800px;
-        box-sizing: border-box;
-    }
+        .scores {
+            margin-top: 10px;
+            padding: 10px;
+            background: #222;
+            border-radius: 6px;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
+        .score-row {
+            padding: 4px 0;
+            border-bottom: 1px solid #333;
+        }
 
-    th, td {
-        border: 1px solid #333;
-        padding: 8px;
-        text-align: left;
-    }
-
-    th {
-        background: #222;
-        font-weight: bold;
-    }
-
-    #closeBtn {
-        background: #e53935;
-        color: #fff;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        float: right;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
-</style>
+        .score-row:last-child {
+            border-bottom: none;
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>Tournament Results</h1>
-<div id="list"></div>
+<h1>Tournament Viewer</h1>
 
-<div id="modal">
-    <div id="modalContent">
-        <div id="closeBtn">Close</div>
-        <h2 id="modalTitle"></h2>
-        <div id="modalTable"></div>
-    </div>
-</div>
+<div id="content">Loading…</div>
 
 <script>
-const FILE_ID = "1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M";
-// Fetching the public edit URL lets us parse the underlying bootstrapData for sheet names and gids
-const SH_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`;
 
-fetch(SH_URL)
-    .then(r => r.text())
-    .then(text => {
-        // Find Google's internal JSON-like bootstrap configuration block
-        const match = text.match(/bootstrapData\s*=\s*([\s\S]*?);/);
-        if (!match) {
-            console.error("Could not find spreadsheet metadata. Is the sheet public?");
-            return;
-        }
 
-        const rawData = match[1];
-        // Regex patterns matching the spreadsheet metadata array signatures: [gid, "sheetName", ...]
-        const sheetMatches = [...rawData.matchAll(/\[(\d+),"(.*?)",/g)];
+async function loadTournamentData() {
+    try {
+        const resp = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=tournament");
+        const data = await resp.json();
 
-        sheetMatches.forEach(m => {
-            const gid = m[1];
-            const title = m[2];
+        const rows = data.rounds;
 
-            // Filter for sheet titles that contain a date pattern (e.g., 12/5/24 or 05/26/2026)
-            if (!title.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) return;
+        // ⭐ Only show the last row
+        const last = rows[rows.length - 1];
 
-            addTournament(title, gid);
+        const rounds = [{
+            round: last.round,
+            pairings: JSON.parse(last.white),
+            scores: JSON.parse(last.black)
+        }];
+
+        renderTournament(rounds);
+
+    } catch (err) {
+        document.getElementById("content").innerHTML = "Failed to load tournament data.";
+        console.error(err);
+    }
+}
+
+
+function renderTournament(rounds) {
+    const container = document.getElementById("content");
+    container.innerHTML = "";
+
+    rounds.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "round";
+
+        div.innerHTML = `<h2>Round ${r.round}</h2>`;
+
+        // Pairings
+        r.pairings.forEach(p => {
+            div.innerHTML += `
+                <div class="pairing">
+                    <strong>${p.white}</strong> vs <strong>${p.black}</strong>
+                    <br>Result: ${p.result === null ? "—" : p.result}
+                </div>
+            `;
         });
-    })
-    .catch(err => console.error("Error loading sheet list:", err));
 
-// Add clickable tournament list items
-function addTournament(title, gid) {
-    const list = document.getElementById("list");
+        // Scores
+        div.innerHTML += `<div class="scores"><strong>Scores:</strong></div>`;
+        const scoreBox = div.querySelector(".scores");
 
-    const div = document.createElement("div");
-    div.className = "tournament";
-    div.textContent = title;
+        r.scores.forEach(s => {
+            scoreBox.innerHTML += `
+                <div class="score-row">
+                    ${s.name}: ${s.score}
+                </div>
+            `;
+        });
 
-    div.onclick = () => loadTournament(title, gid);
-
-    list.appendChild(div);
-}
-
-// Load CSV data for the selected sheet tab
-function loadTournament(title, gid) {
-    const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${gid}`;
-
-    fetch(url)
-        .then(r => r.text())
-        .then(text => {
-            // Use a proper parser instead of line.split(",") so names like "Smith, John" stay intact
-            const rows = parseCSV(text);
-            openModal(title, rows);
-        })
-        .catch(err => console.error("Error loading tournament data:", err));
-}
-
-// Robust custom CSV parser to correctly manage quoted strings containing commas
-function parseCSV(text) {
-    const lines = text.split(/\r?\n/);
-    return lines.map(line => {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-            let char = line[i];
-            if (char === '"') {
-                inQuotes = !inQuotes; // Toggle quote tracking state
-            } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        result.push(current.trim());
-        return result;
+        container.appendChild(div);
     });
 }
 
-// Construct and show the modal HTML table
-function openModal(title, rows) {
-    document.getElementById("modalTitle").textContent = title;
-
-    if (!rows || rows.length === 0 || (rows.length === 1 && rows[0][0] === "")) {
-        document.getElementById("modalTable").innerHTML = "<p>No data found in this sheet.</p>";
-        document.getElementById("modal").style.display = "flex";
-        return;
-    }
-
-    let html = "<table><tr>";
-    // Build Headers
-    rows[0].forEach(h => {
-        let cleanHeader = h.replace(/^"|"$/g, '');
-        html += `<th>${cleanHeader}</th>`;
-    });
-    html += "</tr>";
-
-    // Build Data Rows
-    for (let i = 1; i < rows.length; i++) {
-        // Skip blank rows
-        if (rows[i].length === 0 || (rows[i].length === 1 && rows[i][0] === "")) continue;
-
-        html += "<tr>";
-        rows[i].forEach(cell => {
-            // Strip structural wrapping quotation marks out of CSV data strings
-            let cleanCell = cell.replace(/^"|"$/g, '');
-            html += `<td>${cleanCell}</td>`;
-        });
-        html += "</tr>";
-    }
-
-    html += "</table>";
-
-    document.getElementById("modalTable").innerHTML = html;
-    document.getElementById("modal").style.display = "flex";
-}
-
-// Modal closing event listener
-document.getElementById("closeBtn").onclick = () => {
-    document.getElementById("modal").style.display = "none";
-};
+loadTournamentData();
 </script>
 
 </body>
