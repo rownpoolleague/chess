@@ -97,40 +97,39 @@
 
 <script>
 const FILE_ID = "1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M";
-const HTML_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`;
+const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?`;
 
-// STEP 1 — SCRAPE SHEET LIST FROM HTML
-fetch(HTML_URL)
+fetch(GVIZ_URL)
     .then(r => r.text())
-    .then(html => {
-        // Extract sheet objects: {"id":123,"title":"Sheet Name"}
-        const matches = [...html.matchAll(/{"id":(\d+),"title":"(.*?)"}/g)];
+    .then(text => {
+        // Extract sheet info
+        const matches = [...text.matchAll(/"sheetId":(\d+),"title":"(.*?)"/g)];
 
         matches.forEach(m => {
             const gid = m[1];
             const title = m[2];
 
-            // Filter: title contains a date like 3/14/25
+            // Filter by date in title
             if (!title.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) return;
 
             addTournament(title, gid);
         });
     });
 
-// STEP 2 — ADD TOURNAMENT ENTRY
+// Add clickable tournament
 function addTournament(title, gid) {
     const list = document.getElementById("list");
 
     const div = document.createElement("div");
     div.className = "tournament";
-    div.textContent = title; // <-- SHEET TAB NAME AS CLICKABLE NAME
+    div.textContent = title;
 
     div.onclick = () => loadTournament(title, gid);
 
     list.appendChild(div);
 }
 
-// STEP 3 — LOAD CSV FOR ONE TOURNAMENT
+// Load CSV for one tournament
 function loadTournament(title, gid) {
     const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${gid}`;
 
@@ -142,7 +141,7 @@ function loadTournament(title, gid) {
         });
 }
 
-// STEP 4 — BUILD MODAL TABLE
+// Build modal table
 function openModal(title, rows) {
     document.getElementById("modalTitle").textContent = title;
 
