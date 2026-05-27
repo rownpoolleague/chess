@@ -79,65 +79,81 @@
         </div>
     </div>
 
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGEVitiaFriLMMlN_gx4ydtzr-W9x2fEJ87JJwyuMuopwB6X44nZKFgQtoJG0Hi1KV0Q/exec';
-        let masterRoster = [], players = [], pairings = [], currentRound = 1, totalRounds = 0, format = '', history = [];
-        let tournamentName = '', timeControl = 'regular', adminPass = "1234"; // Added simple pass for now
-        let playedPairs = new Set(), receivedBye = new Set(), rrSchedules = [];
+ <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGEVitiaFriLMMlN_gx4ydtzr-W9x2fEJ87JJwyuMuopwB6X44nZKFgQtoJG0Hi1KV0Q/exec';
+    let masterRoster = [], players = [], pairings = [], currentRound = 1, totalRounds = 0, format = '', history = [];
+    let tournamentName = '', timeControl = 'regular', adminPass = ""; // Password will be set from sheet
+    let playedPairs = new Set(), receivedBye = new Set(), rrSchedules = [];
 
-        // Logic check: only proceed if password is verified
-        function checkPassword() {
-            const input = document.getElementById('admin-pass-input').value;
-            if (input === adminPass) {
-                document.getElementById('password-overlay').style.display = 'none';
-            } else {
-                alert("Incorrect Password");
-            }
-        }
+    async function load() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            
+            // Sync with your new API structure
+            adminPass = String(data.password);
+            masterRoster = data.players.map(p => ({
+                id: p[0], name: p[0],
+                ratings: { regular: parseRating(p[1]), quick: parseRating(p[2]), blitz: parseRating(p[3]) },
+                rating: 0, score: 0, colorScore: 0, colorHistory: []
+            }));
+            
+            loadState();
+            if (players.length === 0) updateRosterRatings();
+        } catch (e) { console.error("Load error:", e); }
+    }
 
-        async function load() {
-            try {
-                const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
-                masterRoster = data.map(p => ({
-                    id: p[0], name: p[0],
-                    ratings: { regular: parseRating(p[1]), quick: parseRating(p[2]), blitz: parseRating(p[3]) },
-                    rating: 0, score: 0, colorScore: 0, colorHistory: []
-                }));
-                loadState();
-                if (players.length === 0) updateRosterRatings();
-            } catch (e) { console.error(e); loadState(); }
+    function checkPassword() {
+        const input = document.getElementById('admin-pass-input').value;
+        if (input === adminPass) {
+            document.getElementById('password-overlay').style.display = 'none';
+        } else {
+            alert("Incorrect Password");
         }
+    }
 
-        function parseRating(val) { const p = parseInt(val); return isNaN(p) ? 0 : p; }
-        function updateRosterRatings() {
-            timeControl = document.getElementById('tc-select').value;
-            masterRoster.forEach(p => p.rating = p.ratings[timeControl]);
-            const checkedMap = {};
-            document.querySelectorAll('.p-select').forEach(cb => checkedMap[cb.value] = cb.checked);
-            document.getElementById('roster-list').innerHTML = masterRoster.map(p => `<label class="p-label"><input type="checkbox" class="p-select" value="${p.id}" ${checkedMap[p.id] ? 'checked' : ''}> ${p.name} (${p.rating || 'UNR'})</label>`).join('');
-        }
-        function toggleRounds() { document.getElementById('rnd-count').style.display = document.getElementById('fmt').value === 'rr' ? 'none' : 'block'; }
-        function saveState() { localStorage.setItem('chess_tournament_state', JSON.stringify({ tournamentName, timeControl, players, pairings, currentRound, totalRounds, format, history, playedPairs: Array.from(playedPairs), receivedBye: Array.from(receivedBye), rrSchedules })); }
-        
-        function loadState() {
-            const saved = localStorage.getItem('chess_tournament_state');
-            if (!saved) return;
-            const state = JSON.parse(saved);
-            tournamentName = state.tournamentName; timeControl = state.timeControl; players = state.players; pairings = state.pairings; currentRound = state.currentRound; totalRounds = state.totalRounds; format = state.format; history = state.history; playedPairs = new Set(state.playedPairs); receivedBye = new Set(state.receivedBye); rrSchedules = state.rrSchedules;
-            if (players.length > 0) {
-                document.getElementById('setup-view').style.display = 'none';
-                document.getElementById('active-view').style.display = 'block';
-                document.getElementById('t-name-display').innerText = tournamentName;
-                document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
-                render();
-            }
-        }
+    function parseRating(val) { const p = parseInt(val); return isNaN(p) ? 0 : p; }
+    
+    function updateRosterRatings() {
+        timeControl = document.getElementById('tc-select').value;
+        masterRoster.forEach(p => p.rating = p.ratings[timeControl]);
+        const checkedMap = {};
+        document.querySelectorAll('.p-select').forEach(cb => checkedMap[cb.value] = cb.checked);
+        document.getElementById('roster-list').innerHTML = masterRoster.map(p => 
+            `<label class="p-label"><input type="checkbox" class="p-select" value="${p.id}" ${checkedMap[p.id] ? 'checked' : ''}> ${p.name} (${p.rating || 'UNR'})</label>`
+        ).join('');
+    }
 
-        // ... (Keep your original startTournament, generatePairings, processRound, render, etc. here)
-        // [Truncated for brevity, rest of your original logic functions follow here]
-        
-        window.onload = load;
-    </script>
+    function toggleRounds() { document.getElementById('rnd-count').style.display = document.getElementById('fmt').value === 'rr' ? 'none' : 'block'; }
+    
+    function saveState() { 
+        localStorage.setItem('chess_tournament_state', JSON.stringify({ 
+            tournamentName, timeControl, players, pairings, currentRound, totalRounds, format, history, 
+            playedPairs: Array.from(playedPairs), receivedBye: Array.from(receivedBye), rrSchedules 
+        })); 
+    }
+    
+    function loadState() {
+        const saved = localStorage.getItem('chess_tournament_state');
+        if (!saved) return;
+        const state = JSON.parse(saved);
+        tournamentName = state.tournamentName; timeControl = state.timeControl; players = state.players; 
+        pairings = state.pairings; currentRound = state.currentRound; totalRounds = state.totalRounds; 
+        format = state.format; history = state.history; playedPairs = new Set(state.playedPairs); 
+        receivedBye = new Set(state.receivedBye); rrSchedules = state.rrSchedules;
+        if (players.length > 0) {
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('active-view').style.display = 'block';
+            document.getElementById('t-name-display').innerText = tournamentName;
+            document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
+            render();
+        }
+    }
+
+    // Ensure your original logic functions (startTournament, processRound, render, etc.) 
+    // are included below this line.
+    
+    window.onload = load;
+</script>
 </body>
 </html>
