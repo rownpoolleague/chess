@@ -207,7 +207,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdipvhjVblIxwbW_Zp02SEgklcxItpTkOWdqzWcMi2oplU_LRGZtKknfmh268mYCZ1xA/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxll02OsslSr69CS5W0Bmwbay5LHHrnOsZywpLR4n8JoM0sJLS4EJPhW-_iAjH-wYSAcg/exec';
         let masterRoster = [],
             players = [],
             pairings = [],
@@ -222,38 +222,40 @@
         let rrSchedules = [];
 
         async function load() {
-            try {
-                const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
+    try {
+        const response = await fetch(SCRIPT_URL);
+        const data = await response.json();
 
-                masterRoster = data.map(p => {
-                    return {
-                        id: p[0],
-                        name: p[0],
-                        ratings: {
-                            regular: parseRating(p[1]),
-                            quick: parseRating(p[2]),
-                            blitz: parseRating(p[3])
-                        },
-                        rating: 0,
-                        score: 0,
-                        colorScore: 0,
-                        colorHistory: []
-                    };
-                });
+        // Check if data is an object with a 'players' property (new format)
+        // or a direct array (old format) for backward compatibility
+        const playerArray = data.players ? data.players : data;
 
-                loadState();
-                if (players.length === 0) {
-                    updateRosterRatings();
-                }
-            } catch (e) {
-                console.error("Error loading roster data:", e);
-                loadState();
-                if (players.length === 0) {
-                    updateRosterRatings();
-                }
-            }
+        masterRoster = playerArray.map(p => {
+            return {
+                id: p[0],
+                name: p[0],
+                ratings: {
+                    regular: parseRating(p[1]),
+                    quick: parseRating(p[2]),
+                    blitz: parseRating(p[3])
+                },
+                rating: 0,
+                score: 0,
+                colorScore: 0,
+                colorHistory: []
+            };
+        });
+
+        loadState();
+        if (players.length === 0) {
+            updateRosterRatings();
         }
+    } catch (e) {
+        console.error("Error loading roster data:", e);
+        // Fallback for emergency or if script fails
+        loadState();
+    }
+}
 
         function parseRating(val) {
             if (val === undefined || val === null || val === '') return 0;
