@@ -717,6 +717,7 @@ async function startTournament() {
                 pairings = generatePairings();
                 saveState();
                 render();
+                await saveCurrentRoundToSheet();
             }
         }
 
