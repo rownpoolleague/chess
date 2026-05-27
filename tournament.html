@@ -441,39 +441,51 @@ async function startTournament() {
             }
         }
 
-        function generatePairings() {
-            if (format === 'rr') {
-                let scheduleTemplate = rrSchedules[currentRound - 1] || [];
-                return scheduleTemplate.map(m => {
-                    let liveW = players.find(p => p.id === m.w.id) || m.w;
-                    let liveB = players.find(p => p.id === m.b.id) || m.b;
-                    return { w: liveW, b: liveB, res: m.res };
-                });
-            }
+function generatePairings() {
+    if (format === 'rr') {
+        let scheduleTemplate = rrSchedules[currentRound - 1] || [];
+        return scheduleTemplate.map(m => {
+            let liveW = players.find(p => p.id === m.w.id) || m.w;
+            let liveB = players.find(p => p.id === m.b.id) || m.b;
+            return { w: liveW, b: liveB, res: m.res };
+        });
+    }
 
-            let pool = [...players].sort((a, b) => b.rating - a.rating);
-            let roundPairings = [];
+    let pool = [...players].sort((a, b) => b.rating - a.rating);
+    let roundPairings = [];
 
-            if (pool.length % 2 !== 0) {
-                pool.sort((a, b) => {
-                    if (a.score !== b.score) return a.score - b.score;
-                    return a.rating - b.rating;
-                });
+    if (pool.length % 2 !== 0) {
+        pool.sort((a, b) => {
+            if (a.score !== b.score) return a.score - b.score;
+            return a.rating - b.rating;
+        });
 
-                let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
-                if (byeIndex === -1) byeIndex = 0;
+        let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
+        if (byeIndex === -1) byeIndex = 0;
 
-                let byePlayer = pool.splice(byeIndex, 1)[0];
-                roundPairings.push({
-                    w: byePlayer,
-                    b: {
-                        name: "BYE",
-                        id: "BYE_DUMMY",
-                        rating: 0
-                    },
-                    res: "bye_win"
-                });
-            }
+        let byePlayer = pool.splice(byeIndex, 1)[0];
+        roundPairings.push({
+            w: byePlayer,
+            b: {
+                name: "BYE",
+                id: "BYE_DUMMY",
+                rating: 0
+            },
+            res: "bye_win"
+        });
+    }
+
+    // ⭐ AFTER all pairings are generated (including non-BYE ones),
+    // force BYE to the bottom.
+    roundPairings.sort((a, b) => {
+        const aIsBye = a.b.id === "BYE_DUMMY";
+        const bIsBye = b.b.id === "BYE_DUMMY";
+        return aIsBye - bIsBye; // BYE goes last
+    });
+
+    return roundPairings;
+}
+
 
             let scoreGroupsMap = {};
             pool.forEach(p => {
