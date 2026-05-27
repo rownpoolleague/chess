@@ -224,7 +224,11 @@
 
    async function load() {
     try {
-        const response = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=members");
+        const response = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=members", {
+    method: 'GET',
+    mode: 'cors'
+});
+
         const data = await response.json();
 
         masterRoster = data.map(p => {
