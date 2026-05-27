@@ -222,39 +222,40 @@
         let receivedBye = new Set();
         let rrSchedules = [];
 
-        async function load() {
-            try {
-                const response = await fetch(APP_CONFIG.APPSCRIPT_URL);
-                const data = await response.json();
+   async function load() {
+    try {
+        const response = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=members");
+        const data = await response.json();
 
-                masterRoster = data.map(p => {
-                    return {
-                        id: p[0],
-                        name: p[0],
-                        ratings: {
-                            regular: parseRating(p[1]),
-                            quick: parseRating(p[2]),
-                            blitz: parseRating(p[3])
-                        },
-                        rating: 0,
-                        score: 0,
-                        colorScore: 0,
-                        colorHistory: []
-                    };
-                });
+        masterRoster = data.map(p => {
+            return {
+                id: p[0],
+                name: p[0],
+                ratings: {
+                    regular: parseRating(p[1]),
+                    quick: parseRating(p[2]),
+                    blitz: parseRating(p[3])
+                },
+                rating: 0,
+                score: 0,
+                colorScore: 0,
+                colorHistory: []
+            };
+        });
 
-                loadState();
-                if (players.length === 0) {
-                    updateRosterRatings();
-                }
-            } catch (e) {
-                console.error("Error loading roster data:", e);
-                loadState();
-                if (players.length === 0) {
-                    updateRosterRatings();
-                }
-            }
+        loadState();
+        if (players.length === 0) {
+            updateRosterRatings();
         }
+    } catch (e) {
+        console.error("Error loading roster data:", e);
+        loadState();
+        if (players.length === 0) {
+            updateRosterRatings();
+        }
+    }
+}
+
 
         function parseRating(val) {
             if (val === undefined || val === null || val === '') return 0;
