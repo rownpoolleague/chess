@@ -169,7 +169,8 @@
         async function loadPlayers() {
             const container = document.getElementById('player-list-container');
             try {
-                const resp = await fetch(APP_CONFIG.SCRIPT_URL, {
+                const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, {
+
                     method: 'GET',
                     mode: 'cors'
                 });
