@@ -827,9 +827,9 @@ fetch(SCRIPT_URL, {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch('YOUR_DEPLOYMENT_URL_HERE', {
             method: 'POST',
-            mode: 'cors', // Essential: allows actual communication
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
