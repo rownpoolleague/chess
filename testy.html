@@ -80,7 +80,7 @@
     </div>
 
  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGEVitiaFriLMMlN_gx4ydtzr-W9x2fEJ87JJwyuMuopwB6X44nZKFgQtoJG0Hi1KV0Q/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTzrgtayiRUag6x_EoG81hAAY_Wiqw3_jQkbRfruzz9-zbQNlfRDm4rgkO3Ba865YWGg/exec';
     let masterRoster = [], players = [], pairings = [], currentRound = 1, totalRounds = 0, format = '', history = [];
     let tournamentName = '', timeControl = 'regular', adminPass = ""; // Password will be set from sheet
     let playedPairs = new Set(), receivedBye = new Set(), rrSchedules = [];
@@ -111,7 +111,32 @@
             alert("Incorrect Password");
         }
     }
+async function syncTournamentToServer() {
+    const payload = {
+        action: 'saveTournament',
+        name: tournamentName,
+        format: format,
+        tc: timeControl,
+        state: { 
+            players, pairings, currentRound, totalRounds, 
+            playedPairs: Array.from(playedPairs), 
+            receivedBye: Array.from(receivedBye) 
+        }
+    };
+    
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+    });
+}
 
+// Example usage: Call this inside processRound() after updating state
+function processRound() {
+    // ... your existing logic ...
+    saveState();
+    syncTournamentToServer(); // Save to the new sheet
+}
     function parseRating(val) { const p = parseInt(val); return isNaN(p) ? 0 : p; }
     
     function updateRosterRatings() {
