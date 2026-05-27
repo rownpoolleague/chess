@@ -4,6 +4,7 @@
     <script src="asfa.js"></script>
     <meta charset="UTF-8">
     <title>Tournament Viewer</title>
+
     <style>
         body {
             background: #111;
@@ -15,38 +16,50 @@
 
         h1 {
             text-align: center;
-            margin: 25px 0;
-            font-size: 48px;
+            margin: 30px 0;
+            font-size: 60px;
             font-weight: bold;
             letter-spacing: 1px;
         }
 
         #content {
             width: 95%;
-            max-width: 1600px;
+            max-width: 1800px;
             margin: auto;
         }
 
         .round {
             background: #1c1c1c;
-            padding: 30px;
-            margin-bottom: 35px;
-            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border-radius: 14px;
             border: 1px solid #333;
-            font-size: 26px;
+            font-size: 34px;
         }
 
         .round h2 {
             margin-top: 0;
             color: #4fc3f7;
-            font-size: 38px;
-            margin-bottom: 20px;
+            font-size: 50px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
+        /* SECTION HEADERS */
+        .section-title {
+            font-size: 42px;
+            margin: 25px 0 15px 0;
+            color: #f7d14f;
+            font-weight: bold;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+
+        /* PAIRINGS */
         .pairing {
-            padding: 18px 0;
+            padding: 20px 0;
             border-bottom: 1px solid #333;
-            font-size: 28px;
+            font-size: 38px;
             line-height: 1.4;
         }
 
@@ -54,22 +67,17 @@
             border-bottom: none;
         }
 
+        /* SCORES / RESULTS */
         .scores {
-            margin-top: 25px;
-            padding: 20px;
+            margin-top: 30px;
+            padding: 25px;
             background: #222;
-            border-radius: 10px;
-            font-size: 28px;
-        }
-
-        .scores strong {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            font-size: 36px;
         }
 
         .score-row {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #333;
         }
 
@@ -78,6 +86,7 @@
         }
     </style>
 </head>
+
 <body>
 
 <h1>Tournament Viewer</h1>
@@ -119,7 +128,8 @@ function renderTournament(rounds) {
 
         div.innerHTML = `<h2>Round ${r.round}</h2>`;
 
-        // Pairings
+        // ⭐ PAIRINGS SECTION
+        div.innerHTML += `<div class="section-title">Pairings</div>`;
         r.pairings.forEach(p => {
             div.innerHTML += `
                 <div class="pairing">
@@ -129,8 +139,9 @@ function renderTournament(rounds) {
             `;
         });
 
-        // Scores
-        div.innerHTML += `<div class="scores"><strong>Scores:</strong></div>`;
+        // ⭐ RESULTS SECTION
+        div.innerHTML += `<div class="section-title">Results</div>`;
+        div.innerHTML += `<div class="scores"></div>`;
         const scoreBox = div.querySelector(".scores");
 
         r.scores.forEach(s => {
