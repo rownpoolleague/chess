@@ -37,31 +37,46 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxyopXAivtTw1ewp9xt5DfbtPU33lFvXLSIhhogauv2NDcGoz5ofx53aFWR10fdPdWYw/exec';
 
-    async function registerPlayer() {
-        const name = document.getElementById('reg-name').value;
-        if (!name) { alert("Name is required"); return; }
-        
-        showModal("Adding player...");
-        const data = { 
-            action: 'addPlayer', 
-            name: name, 
-            reg: document.getElementById('reg-elo-reg').value, 
-            quick: document.getElementById('reg-elo-quick').value, 
-            blitz: document.getElementById('reg-elo-blitz').value 
-        };
+async function registerPlayer() {
+    const name = document.getElementById('reg-name').value;
+    if (!name) { alert("Name is required"); return; }
+    
+    showModal("Adding player...");
+    const data = { 
+        action: 'addPlayer', 
+        name: name, 
+        reg: document.getElementById('reg-elo-reg').value, 
+        quick: document.getElementById('reg-elo-quick').value, 
+        blitz: document.getElementById('reg-elo-blitz').value 
+    };
 
-        try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-            const text = await res.text();
-            showModal(text.includes("Error") ? text : "Player added successfully!");
-            if (!text.includes("Error")) {
-                document.getElementById('reg-name').value = '';
-                document.getElementById('reg-elo-reg').value = '';
-                document.getElementById('reg-elo-quick').value = '';
-                document.getElementById('reg-elo-blitz').value = '';
-            }
-        } catch (e) { showModal("Network error"); }
+    try {
+        const res = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', // Try removing this if it still fails, or keep it if it's currently there
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data) 
+        });
+        
+        // Note: 'no-cors' mode makes res.text() return an empty string. 
+        // If you need the server response text, you must remove 'mode: no-cors' 
+        // and ensure your script is deployed correctly to handle preflight requests.
+        const text = await res.text();
+        showModal(text.includes("Error") ? text : "Player added successfully!");
+        
+        if (!text.includes("Error")) {
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-elo-reg').value = '';
+            document.getElementById('reg-elo-quick').value = '';
+            document.getElementById('reg-elo-blitz').value = '';
+        }
+    } catch (e) { 
+        console.error(e); // Log the actual error to your browser console
+        showModal("Network error: " + e.message); 
     }
+}
 
     function showModal(text) {
         document.getElementById('confirmation-modal').style.display = 'flex';
