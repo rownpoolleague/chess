@@ -207,7 +207,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxll02OsslSr69CS5W0Bmwbay5LHHrnOsZywpLR4n8JoM0sJLS4EJPhW-_iAjH-wYSAcg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhunaAyEh9Addw7xpNk07xtQ5aukknizKurB7gyoi41j_cavo9grKb0Sqnm3d2u3W_0A/exec';
         let masterRoster = [],
             players = [],
             pairings = [],
@@ -372,29 +372,32 @@
     pairings = generatePairings();
     
     // Save to Google Sheet
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'saveTournament',
-            name: tournamentName,
-            format: format,
-            tc: timeControl,
-            state: JSON.stringify({
-                tournamentName,
-                timeControl,
-                players,
-                pairings,
-                currentRound,
-                totalRounds,
-                format,
-                history,
-                playedPairs: Array.from(playedPairs),
-                receivedBye: Array.from(receivedBye),
-                rrSchedules
-            })
-        })
-    }).catch(err => console.error("Save to Sheet failed:", err));
+// Inside startTournament()
+fetch(SCRIPT_URL, {
+    method: 'POST',
+    // Remove mode: 'no-cors' if you want to handle errors/success
+    // Ensure your Apps Script is deployed to allow access to 'Anyone'
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        action: 'saveTournament',
+        name: tournamentName,
+        format: format,
+        tc: timeControl,
+        state: { // Pass the object directly, not stringified
+            tournamentName,
+            timeControl,
+            players,
+            pairings,
+            currentRound,
+            totalRounds,
+            format,
+            history,
+            playedPairs: Array.from(playedPairs),
+            receivedBye: Array.from(receivedBye),
+            rrSchedules
+        }
+    })
+}).then(res => res.text()).then(txt => console.log(txt)).catch(err => console.error(err));
 
     document.getElementById('setup-view').style.display = 'none';
     document.getElementById('active-view').style.display = 'block';
