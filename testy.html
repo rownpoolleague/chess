@@ -183,7 +183,7 @@
 
                 <input type="number" id="rnd-count" placeholder="Number of Rounds" value="3">
                 <div id="roster-list" style="max-height: 50vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
-<button class="action-btn" style="margin-top: 10px;" onclick="startTournament(); saveTournamentToSheet();">BEGIN</button>
+                <button class="action-btn" style="margin-top: 10px;" onclick="startTournament();">BEGIN</button>
             </div>
 
             <div id="active-view" style="display: none;">
@@ -222,40 +222,36 @@
         let rrSchedules = [];
 
         async function load() {
-    try {
-        const response = await fetch(SCRIPT_URL);
-        const data = await response.json();
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                const playerArray = data.players ? data.players : data;
 
-        // Check if data is an object with a 'players' property (new format)
-        // or a direct array (old format) for backward compatibility
-        const playerArray = data.players ? data.players : data;
+                masterRoster = playerArray.map(p => {
+                    return {
+                        id: p[0],
+                        name: p[0],
+                        ratings: {
+                            regular: parseRating(p[1]),
+                            quick: parseRating(p[2]),
+                            blitz: parseRating(p[3])
+                        },
+                        rating: 0,
+                        score: 0,
+                        colorScore: 0,
+                        colorHistory: []
+                    };
+                });
 
-        masterRoster = playerArray.map(p => {
-            return {
-                id: p[0],
-                name: p[0],
-                ratings: {
-                    regular: parseRating(p[1]),
-                    quick: parseRating(p[2]),
-                    blitz: parseRating(p[3])
-                },
-                rating: 0,
-                score: 0,
-                colorScore: 0,
-                colorHistory: []
-            };
-        });
-
-        loadState();
-        if (players.length === 0) {
-            updateRosterRatings();
+                loadState();
+                if (players.length === 0) {
+                    updateRosterRatings();
+                }
+            } catch (e) {
+                console.error("Error loading roster data:", e);
+                loadState();
+            }
         }
-    } catch (e) {
-        console.error("Error loading roster data:", e);
-        // Fallback for emergency or if script fails
-        loadState();
-    }
-}
 
         function parseRating(val) {
             if (val === undefined || val === null || val === '') return 0;
@@ -265,7 +261,6 @@
 
         function updateRosterRatings() {
             timeControl = document.getElementById('tc-select').value;
-
             masterRoster.forEach(p => {
                 p.rating = p.ratings[timeControl];
             });
@@ -301,6 +296,13 @@
                 rrSchedules
             };
             localStorage.setItem('chess_tournament_state', JSON.stringify(state));
+            
+            // Sync to Google Sheet
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'saveTournament', name: tournamentName, format: format, tc: timeControl, state: JSON.stringify(state) })
+            }).catch(console.error);
         }
 
         function loadState() {
@@ -340,88 +342,53 @@
         }
 
         function startTournament() {
-    const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
-    if (selectedIds.length < 2) return alert("Select at least 2 players");
+            const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
+            if (selectedIds.length < 2) return alert("Select at least 2 players");
 
-    tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
-    timeControl = document.getElementById('tc-select').value;
-    format = document.getElementById('fmt').value;
+            tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
+            timeControl = document.getElementById('tc-select').value;
+            format = document.getElementById('fmt').value;
 
-    players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
-        id: p.id,
-        name: p.name,
-        rating: p.ratings[timeControl],
-        score: 0,
-        colorScore: 0,
-        colorHistory: []
-    }));
+            players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
+                id: p.id,
+                name: p.name,
+                rating: p.ratings[timeControl],
+                score: 0,
+                colorScore: 0,
+                colorHistory: []
+            }));
 
-    currentRound = 1;
-    history = [];
-    playedPairs.clear();
-    receivedBye.clear();
-    rrSchedules = [];
+            currentRound = 1;
+            history = [];
+            playedPairs.clear();
+            receivedBye.clear();
+            rrSchedules = [];
 
-    if (format === 'rr') {
-        totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
-        generateRoundRobinSchedules();
-    } else {
-        totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
-    }
+            if (format === 'rr') {
+                totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
+                generateRoundRobinSchedules();
+            } else {
+                totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
+            }
 
-    pairings = generatePairings();
-    
-    // Save to Google Sheet
-// Inside startTournament()
-fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        action: 'saveTournament',
-        name: tournamentName,
-        format: format,
-        tc: timeControl,
-        state: {tournamentName,
-            timeControl,
-            players,
-            pairings,
-            currentRound,
-            totalRounds,
-            format,
-            history,
-            playedPairs: Array.from(playedPairs),
-            receivedBye: Array.from(receivedBye),
-            rrSchedules
+            pairings = generatePairings();
+
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('active-view').style.display = 'block';
+            document.getElementById('t-name-display').innerText = tournamentName;
+            document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
+            
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+            
+            saveState();
+            render();
         }
-    })
-}).then(res => res.text()).then(txt => console.log(txt)).catch(err => console.error(err));
-
-    document.getElementById('setup-view').style.display = 'none';
-    document.getElementById('active-view').style.display = 'block';
-    document.getElementById('t-name-display').innerText = tournamentName;
-    document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
-    document.getElementById('dl-btn').style.display = 'none';
-
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(() => {});
-    } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-    }
-
-    saveState();
-    render();
-}
 
         function generateRoundRobinSchedules() {
             let list = [...players].sort((a, b) => b.rating - a.rating);
             if (list.length % 2 !== 0) {
-                list.push({
-                    name: "BYE",
-                    id: "BYE_DUMMY",
-                    rating: 0,
-                    score: 0
-                });
+                list.push({ name: "BYE", id: "BYE_DUMMY", rating: 0, score: 0 });
             }
             const roundsCount = list.length - 1;
             const half = list.length / 2;
@@ -434,29 +401,13 @@ fetch(SCRIPT_URL, {
 
                     if (p1.id !== "BYE_DUMMY" && p2.id !== "BYE_DUMMY") {
                         if ((i + r) % 2 === 0) {
-                            roundPairings.push({
-                                w: p1,
-                                b: p2,
-                                res: null
-                            });
+                            roundPairings.push({ w: p1, b: p2, res: null });
                         } else {
-                            roundPairings.push({
-                                w: p2,
-                                b: p1,
-                                res: null
-                            });
+                            roundPairings.push({ w: p2, b: p1, res: null });
                         }
                     } else {
                         const receiver = p1.id === "BYE_DUMMY" ? p2 : p1;
-                        roundPairings.push({
-                            w: receiver,
-                            b: {
-                                name: "BYE",
-                                id: "BYE_DUMMY",
-                                rating: 0
-                            },
-                            res: "bye_win"
-                        });
+                        roundPairings.push({ w: receiver, b: { name: "BYE", id: "BYE_DUMMY", rating: 0 }, res: "bye_win" });
                     }
                 }
                 rrSchedules.push(roundPairings);
@@ -478,24 +429,11 @@ fetch(SCRIPT_URL, {
             let roundPairings = [];
 
             if (pool.length % 2 !== 0) {
-                pool.sort((a, b) => {
-                    if (a.score !== b.score) return a.score - b.score;
-                    return a.rating - b.rating;
-                });
-
+                pool.sort((a, b) => (a.score - b.score) || (a.rating - b.rating));
                 let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
                 if (byeIndex === -1) byeIndex = 0;
-
                 let byePlayer = pool.splice(byeIndex, 1)[0];
-                roundPairings.push({
-                    w: byePlayer,
-                    b: {
-                        name: "BYE",
-                        id: "BYE_DUMMY",
-                        rating: 0
-                    },
-                    res: "bye_win"
-                });
+                roundPairings.push({ w: byePlayer, b: { name: "BYE", id: "BYE_DUMMY", rating: 0 }, res: "bye_win" });
             }
 
             let scoreGroupsMap = {};
@@ -505,9 +443,7 @@ fetch(SCRIPT_URL, {
             });
 
             let sortedScores = Object.keys(scoreGroupsMap).map(Number).sort((a, b) => b - a);
-            let formattedPoolGroups = sortedScores.map(score => {
-                return scoreGroupsMap[score].sort((a, b) => b.rating - a.rating);
-            });
+            let formattedPoolGroups = sortedScores.map(score => scoreGroupsMap[score].sort((a, b) => b.rating - a.rating));
 
             let success = backtrackSwissBrackets(formattedPoolGroups, 0, roundPairings);
 
@@ -515,21 +451,13 @@ fetch(SCRIPT_URL, {
                 let finalFlatPool = [];
                 formattedPoolGroups.forEach(g => finalFlatPool.push(...g));
                 finalFlatPool.sort((a, b) => b.score - a.score || b.rating - a.rating);
-
                 for (let i = 0; i < finalFlatPool.length; i += 2) {
                     if (finalFlatPool[i + 1]) {
-                        let p1 = finalFlatPool[i];
-                        let p2 = finalFlatPool[i + 1];
-                        let colors = determineColors(p1, p2);
-                        roundPairings.unshift({
-                            w: colors.w,
-                            b: colors.b,
-                            res: null
-                        });
+                        let colors = determineColors(finalFlatPool[i], finalFlatPool[i + 1]);
+                        roundPairings.push({ w: colors.w, b: colors.b, res: null });
                     }
                 }
             }
-
             return roundPairings;
         }
 
@@ -538,31 +466,24 @@ fetch(SCRIPT_URL, {
             if (groups[groupIdx].length === 0) return backtrackSwissBrackets(groups, groupIdx + 1, currentPairings);
 
             let currentGroup = groups[groupIdx];
-
             if (currentGroup.length % 2 !== 0) {
                 if (groupIdx === groups.length - 1) return false;
-
                 for (let i = currentGroup.length - 1; i >= 0; i--) {
                     let bumpedPlayer = currentGroup.splice(i, 1)[0];
                     groups[groupIdx + 1].unshift(bumpedPlayer);
                     groups[groupIdx + 1].sort((a, b) => b.rating - a.rating);
-
                     if (pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
                             currentPairings.push(...bracketPairs);
                             if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
                             for (let k = 0; k < bracketPairs.length; k++) currentPairings.pop();
                             return false;
-                        })) {
-                        return true;
-                    }
-
+                        })) return true;
                     groups[groupIdx + 1] = groups[groupIdx + 1].filter(p => p.id !== bumpedPlayer.id);
                     currentGroup.splice(i, 0, bumpedPlayer);
                     currentGroup.sort((a, b) => b.rating - a.rating);
                 }
                 return false;
             }
-
             return pairSingleBracket(currentGroup, 0, [], (bracketPairs) => {
                 currentPairings.push(...bracketPairs);
                 if (backtrackSwissBrackets(groups, groupIdx + 1, currentPairings)) return true;
@@ -572,22 +493,13 @@ fetch(SCRIPT_URL, {
         }
 
         function pairSingleBracket(group, targetIdx, localPairs, successCallback) {
-            while (targetIdx < group.length && localPairs.some(p => p.w.id === group[targetIdx].id || p.b.id === group[targetIdx].id)) {
-                targetIdx++;
-            }
-
+            while (targetIdx < group.length && localPairs.some(p => p.w.id === group[targetIdx].id || p.b.id === group[targetIdx].id)) targetIdx++;
             if (targetIdx >= group.length) return successCallback(localPairs);
 
             let p1 = group[targetIdx];
-            let midOffset = Math.floor(group.length / 2);
-            let idealPartnerIdx = targetIdx + midOffset;
-
             let searchOrder = [];
-            if (idealPartnerIdx < group.length && !localPairs.some(p => p.w.id === group[idealPartnerIdx].id || p.b.id === group[idealPartnerIdx].id)) {
-                searchOrder.push(idealPartnerIdx);
-            }
             for (let i = 0; i < group.length; i++) {
-                if (i !== targetIdx && i !== idealPartnerIdx) searchOrder.push(i);
+                if (i !== targetIdx) searchOrder.push(i);
             }
 
             for (let idx of searchOrder) {
@@ -596,12 +508,7 @@ fetch(SCRIPT_URL, {
                 if (playedPairs.has(`${p1.id}-${p2.id}`) || playedPairs.has(`${p2.id}-${p1.id}`)) continue;
 
                 let colors = determineColors(p1, p2);
-                localPairs.push({
-                    w: colors.w,
-                    b: colors.b,
-                    res: null
-                });
-
+                localPairs.push({ w: colors.w, b: colors.b, res: null });
                 if (pairSingleBracket(group, targetIdx + 1, localPairs, successCallback)) return true;
                 localPairs.pop();
             }
@@ -609,72 +516,29 @@ fetch(SCRIPT_URL, {
         }
 
         function determineColors(p1, p2) {
-            let diff1 = p1.colorScore;
-            let diff2 = p2.colorScore;
-
-            if (diff1 !== diff2) return diff1 > diff2 ? {
-                w: p2,
-                b: p1
-            } : {
-                w: p1,
-                b: p2
-            };
-
+            if (p1.colorScore !== p2.colorScore) return p1.colorScore > p2.colorScore ? { w: p2, b: p1 } : { w: p1, b: p2 };
             let lastColor1 = p1.colorHistory[p1.colorHistory.length - 1];
             let lastColor2 = p2.colorHistory[p2.colorHistory.length - 1];
-
-            if (lastColor1 === 'W' && lastColor2 !== 'W') return {
-                w: p2,
-                b: p1
-            };
-            if (lastColor1 === 'B' && lastColor2 !== 'B') return {
-                w: p1,
-                b: p2
-            };
-
-            return Math.random() < 0.5 ? {
-                w: p1,
-                b: p2
-            } : {
-                w: p2,
-                b: p1
-            };
+            if (lastColor1 === 'W' && lastColor2 !== 'W') return { w: p2, b: p1 };
+            if (lastColor1 === 'B' && lastColor2 !== 'B') return { w: p1, b: p2 };
+            return Math.random() < 0.5 ? { w: p1, b: p2 } : { w: p2, b: p1 };
         }
 
         function formatScore(score) {
             if (score === 0) return "0";
             if (score % 1 === 0) return score.toString();
-            let whole = Math.floor(score);
-            return whole > 0 ? `${whole} 1/2` : "1/2";
+            return `${Math.floor(score)} 1/2`;
         }
 
         function render() {
             if (currentRound <= totalRounds) {
                 document.getElementById('round-title').innerText = `Round ${currentRound} of ${totalRounds}`;
-                document.getElementById('next-btn').style.display = pairings.every(m => m.res !== null) && pairings.length > 0 ? 'block' : 'none';
+                document.getElementById('next-btn').style.display = (pairings.every(m => m.res !== null) && pairings.length > 0) ? 'block' : 'none';
                 document.getElementById('dl-btn').style.display = 'none';
 
                 document.getElementById('pairings-list').innerHTML = pairings.map((m, i) => {
-                    if (m.res === "bye_win") {
-                        return `
-                    <div class="match-card" style="border-left-color: var(--go);">
-                        <div><strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) has a <strong>BYE</strong></div>
-                        <div style="font-size: 0.85rem; color: var(--go); margin-top: 5px;">+1.0 Point Auto-Assigned</div>
-                    </div>`;
-                    }
-                    return `
-                <div class="match-card">
-                    <div>
-                        <strong>${m.w.name}</strong> (${m.w.rating === 0 ? 'UNR' : m.w.rating}) <span style="color:#888;">(W)</span>
-                        vs 
-                        <strong>${m.b.name}</strong> (${m.b.rating === 0 ? 'UNR' : m.b.rating}) <span style="color:#888;">(B)</span>
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1 - 0</button>
-                        <button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2 - 1/2</button>
-                        <button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0 - 1</button>
-                    </div>
-                </div>`;
+                    if (m.res === "bye_win") return `<div class="match-card" style="border-left-color: var(--go);"><div><strong>${m.w.name}</strong> has a <strong>BYE</strong></div></div>`;
+                    return `<div class="match-card"><div><strong>${m.w.name}</strong> (W) vs <strong>${m.b.name}</strong> (B)</div><div style="display:flex; gap:5px; margin-top:10px;"><button class="res-btn ${m.res === 'w' ? 'active' : ''}" onclick="setRes(${i}, 'w')">1-0</button><button class="res-btn ${m.res === 'd' ? 'active' : ''}" onclick="setRes(${i}, 'd')">1/2-1/2</button><button class="res-btn ${m.res === 'b' ? 'active' : ''}" onclick="setRes(${i}, 'b')">0-1</button></div></div>`;
                 }).join('');
             } else {
                 document.getElementById('round-title').innerText = "Tournament Complete";
@@ -683,159 +547,61 @@ fetch(SCRIPT_URL, {
                 document.getElementById('dl-btn').style.display = 'block';
             }
 
-            document.getElementById('standings-list').innerHTML = [...players].sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score;
-                return b.rating - a.rating;
-            }).map(p => `
-            <div style="display:flex; justify-content:space-between; padding:4px 0;">
-                <span>${p.name} (${p.rating === 0 ? 'UNR' : p.rating})</span>
-                <span>${formatScore(p.score)}</span>
-            </div>`).join('');
+            document.getElementById('standings-list').innerHTML = [...players].sort((a, b) => (b.score - a.score) || (b.rating - a.rating)).map(p => `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span>${p.name}</span><span>${formatScore(p.score)}</span></div>`).join('');
         }
 
         function setRes(i, res) {
             pairings[i].res = res;
-            if (format === 'rr' && rrSchedules[currentRound - 1]) {
-                rrSchedules[currentRound - 1][i].res = res;
-            }
+            if (format === 'rr' && rrSchedules[currentRound - 1]) rrSchedules[currentRound - 1][i].res = res;
             saveState();
             render();
         }
 
         function processRound() {
-            history.push({
-                round: currentRound,
-                matches: JSON.parse(JSON.stringify(pairings))
-            });
-
+            history.push({ round: currentRound, matches: JSON.parse(JSON.stringify(pairings)) });
             pairings.forEach(m => {
                 let matchW = players.find(p => p.id === m.w.id);
                 let matchB = players.find(p => p.id === m.b.id);
-
                 if (matchB && matchB.id !== "BYE_DUMMY") {
                     playedPairs.add(`${matchW.id}-${matchB.id}`);
-                    matchW.colorHistory.push('W');
-                    matchW.colorScore += 1;
-                    matchB.colorHistory.push('B');
-                    matchB.colorScore -= 1;
+                    matchW.colorHistory.push('W'); matchW.colorScore += 1;
+                    matchB.colorHistory.push('B'); matchB.colorScore -= 1;
                 } else if (matchW) {
                     receivedBye.add(matchW.id);
                 }
-
-                if (m.res === 'w' || m.res === 'bye_win') {
-                    if (matchW) matchW.score += 1;
-                } else if (m.res === 'b') {
-                    if (matchB) matchB.score += 1;
-                } else if (m.res === 'd') {
-                    if (matchW) matchW.score += 0.5;
-                    if (matchB) matchB.score += 0.5;
-                }
+                if (m.res === 'w' || m.res === 'bye_win') matchW.score += 1;
+                else if (m.res === 'b') matchB.score += 1;
+                else if (m.res === 'd') { matchW.score += 0.5; matchB.score += 0.5; }
             });
-
-            if (currentRound >= totalRounds) {
-                currentRound++;
-                saveState();
-                render();
-            } else {
-                currentRound++;
-                pairings = generatePairings();
-                saveState();
-                render();
-            }
+            currentRound++;
+            if (currentRound <= totalRounds) pairings = generatePairings();
+            saveState();
+            render();
         }
 
         function downloadResults() {
-            let content = `TOURNAMENT REPORT: ${tournamentName.toUpperCase()}\n`;
-            content += `TIME CONTROL TYPE: ${timeControl.toUpperCase()}\n`;
-            content += "=".repeat(content.length - 2) + "\n\n";
-
+            let content = `TOURNAMENT REPORT: ${tournamentName}\n\n`;
             history.forEach(r => {
                 content += `ROUND ${r.round}\n`;
-                r.matches.forEach(m => {
-                    let displayRes = m.res;
-                    if (m.res === 'w') displayRes = "1-0";
-                    if (m.res === 'd') displayRes = "1/2-1/2";
-                    if (m.res === 'b') displayRes = "0-1";
-                    if (m.res === 'bye_win') displayRes = "BYE (1-0)";
-
-                    const wRating = m.w.rating === 0 ? 'UNR' : m.w.rating;
-                    const bRating = m.b.rating === 0 ? 'UNR' : m.b.rating;
-                    content += `${m.w.name} (${wRating}) vs ${m.b.name} (${bRating}) - Result: ${displayRes}\n`;
-                });
+                r.matches.forEach(m => { content += `${m.w.name} vs ${m.b.name} - Result: ${m.res}\n`; });
                 content += "\n";
             });
-
-            content += "FINAL STANDINGS\n" + [...players].sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score;
-                return b.rating - a.rating;
-            }).map(p => `${p.name} (${p.rating === 0 ? 'UNR' : p.rating}): ${formatScore(p.score)}`).join("\n");
-
-            const blob = new Blob([content], {
-                type: 'text/plain'
-            });
+            const blob = new Blob([content], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-
-            const safeName = tournamentName.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-            a.download = `${safeName}_results.txt`;
-
-            document.body.appendChild(a);
+            a.download = `${tournamentName.replace(/\s+/g, '_')}_results.txt`;
             a.click();
-            document.body.removeChild(a);
         }
 
-        function goToMainMenu() {
-            window.location.href = 'index.html';
-        }
+        function goToMainMenu() { window.location.href = 'index.html'; }
 
         function resetTournament() {
-            if (!confirm("Are you sure you want to reset and clear all data?")) return;
-
+            if (!confirm("Reset all data?")) return;
             localStorage.removeItem('chess_tournament_state');
-
-            document.getElementById('active-view').style.display = 'none';
-            document.getElementById('setup-view').style.display = 'block';
-            document.getElementById('dl-btn').style.display = 'none';
-            document.getElementById('t-name-input').value = '';
-            document.getElementById('t-name-display').innerText = '';
-            document.getElementById('t-meta-display').innerText = '';
-            document.getElementById('tc-select').value = 'regular';
-
-            tournamentName = '';
-            timeControl = 'regular';
-            currentRound = 1;
-            players = [];
-            pairings = [];
-            history = [];
-            playedPairs.clear();
-            receivedBye.clear();
-            rrSchedules = [];
-            updateRosterRatings();
+            location.reload();
         }
 
         window.onload = load;
-       async function saveTournamentToSheet() {
-    const payload = {
-        action: 'saveTournament',
-        name: tournamentName,
-        format: format,
-        tc: timeControl,
-        state: localStorage.getItem('chess_tournament_state')
-    };
-
-    try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbzU3yQ60QE9Yz7vi3ySzR98ltYVTZD9A1cT6oiJ9LleEJObigLwKtHXRWKFQKrq1s_E-A/exec', {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.text();
-        console.log("Server Response:", result);
-    } catch (e) {
-        console.error("Critical Failure:", e);
-    }
-}
     </script>
 </body>
 
