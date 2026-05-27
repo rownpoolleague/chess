@@ -97,29 +97,27 @@
 
 <script>
 const FILE_ID = "1fjRWL89XIfXi0yIdzPKXdBH_80dzFqcVdQp2VFLKY0M";
-const META_URL = `https://spreadsheets.google.com/feeds/worksheets/${FILE_ID}/public/basic?alt=json`;
+const HTML_URL = `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`;
 
-// Load sheet list
-fetch(META_URL)
-    .then(r => r.json())
-    .then(data => {
-        const entries = data.feed.entry || [];
-        entries.forEach(entry => {
-            const title = entry.title.$t;
-            const link = entry.link[0].href;
+// STEP 1 — SCRAPE SHEET LIST FROM HTML
+fetch(HTML_URL)
+    .then(r => r.text())
+    .then(html => {
+        // Extract sheet objects: {"id":123,"title":"Sheet Name"}
+        const matches = [...html.matchAll(/{"id":(\d+),"title":"(.*?)"}/g)];
 
-            // Only keep sheets whose title looks like it has a date (e.g. "May Games 3/14/25")
+        matches.forEach(m => {
+            const gid = m[1];
+            const title = m[2];
+
+            // Filter: title contains a date like 3/14/25
             if (!title.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) return;
-
-            const gidMatch = link.match(/gid=(\d+)/);
-            if (!gidMatch) return;
-            const gid = gidMatch[1];
 
             addTournament(title, gid);
         });
     });
 
-// Add clickable tournament entry
+// STEP 2 — ADD TOURNAMENT ENTRY
 function addTournament(title, gid) {
     const list = document.getElementById("list");
 
@@ -132,7 +130,7 @@ function addTournament(title, gid) {
     list.appendChild(div);
 }
 
-// Fetch and show one tournament
+// STEP 3 — LOAD CSV FOR ONE TOURNAMENT
 function loadTournament(title, gid) {
     const url = `https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv&gid=${gid}`;
 
@@ -144,15 +142,9 @@ function loadTournament(title, gid) {
         });
 }
 
-// Build modal table
+// STEP 4 — BUILD MODAL TABLE
 function openModal(title, rows) {
     document.getElementById("modalTitle").textContent = title;
-
-    if (!rows.length) {
-        document.getElementById("modalTable").innerHTML = "<p>No data.</p>";
-        document.getElementById("modal").style.display = "flex";
-        return;
-    }
 
     let html = "<table><tr>";
     rows[0].forEach(h => html += `<th>${h}</th>`);
@@ -163,7 +155,7 @@ function openModal(title, rows) {
 
         let row = [...rows[i]];
 
-        // Merge split name columns (No. | Last | First...)
+        // Merge split name columns
         if (row.length >= 3 && row[1] && row[2]) {
             if (!row[1].includes(",") && row[2]) {
                 row[1] = row[1] + ", " + row[2];
@@ -171,10 +163,8 @@ function openModal(title, rows) {
             }
         }
 
-        // Remove quotes from name
-        if (row[1]) {
-            row[1] = row[1].replace(/"/g, "");
-        }
+        // Remove quotes
+        if (row[1]) row[1] = row[1].replace(/"/g, "");
 
         html += "<tr>";
         row.forEach(cell => html += `<td>${cell}</td>`);
