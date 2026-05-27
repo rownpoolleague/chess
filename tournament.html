@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-    <script src="asfa.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TOURNAMENT ENGINE</title>
@@ -208,7 +207,7 @@
     </div>
 
     <script>
-       
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTmJRN7G3ee0Svp5NaO41kygaxQTGqV69W11yRNk44Dtr2jRJg5Ba9j_DiZHeGdmHwmQ/exec';
         let masterRoster = [],
             players = [],
             pairings = [],
@@ -222,46 +221,39 @@
         let receivedBye = new Set();
         let rrSchedules = [];
 
-async function load() {
-    try {
-        const response = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=members", {
-            method: 'GET',
-            mode: 'cors'
-        });
+        async function load() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
 
-        const data = await response.json();
+                masterRoster = data.map(p => {
+                    return {
+                        id: p[0],
+                        name: p[0],
+                        ratings: {
+                            regular: parseRating(p[1]),
+                            quick: parseRating(p[2]),
+                            blitz: parseRating(p[3])
+                        },
+                        rating: 0,
+                        score: 0,
+                        colorScore: 0,
+                        colorHistory: []
+                    };
+                });
 
-        masterRoster = data.map(p => {
-            return {
-                id: p[0],
-                name: p[0],
-                ratings: {
-                    regular: parseRating(p[1] || 0),
-quick: parseRating(p[2] || 0),
-blitz: parseRating(p[3] || 0)
-
-                },
-                rating: 0,
-                score: 0,
-                colorScore: 0,
-                colorHistory: []
-            };
-        });
-
-        loadState();
-        if (players.length === 0) {
-            updateRosterRatings();
+                loadState();
+                if (players.length === 0) {
+                    updateRosterRatings();
+                }
+            } catch (e) {
+                console.error("Error loading roster data:", e);
+                loadState();
+                if (players.length === 0) {
+                    updateRosterRatings();
+                }
+            }
         }
-    } catch (e) {
-        console.error("Error loading roster data:", e);
-        loadState();
-        if (players.length === 0) {
-            updateRosterRatings();
-        }
-    }
-}
-
-
 
         function parseRating(val) {
             if (val === undefined || val === null || val === '') return 0;
@@ -448,51 +440,39 @@ async function startTournament() {
             }
         }
 
-function generatePairings() {
-    if (format === 'rr') {
-        let scheduleTemplate = rrSchedules[currentRound - 1] || [];
-        return scheduleTemplate.map(m => {
-            let liveW = players.find(p => p.id === m.w.id) || m.w;
-            let liveB = players.find(p => p.id === m.b.id) || m.b;
-            return { w: liveW, b: liveB, res: m.res };
-        });
-    }
+        function generatePairings() {
+            if (format === 'rr') {
+                let scheduleTemplate = rrSchedules[currentRound - 1] || [];
+                return scheduleTemplate.map(m => {
+                    let liveW = players.find(p => p.id === m.w.id) || m.w;
+                    let liveB = players.find(p => p.id === m.b.id) || m.b;
+                    return { w: liveW, b: liveB, res: m.res };
+                });
+            }
 
-    let pool = [...players].sort((a, b) => b.rating - a.rating);
-    let roundPairings = [];
+            let pool = [...players].sort((a, b) => b.rating - a.rating);
+            let roundPairings = [];
 
-    if (pool.length % 2 !== 0) {
-        pool.sort((a, b) => {
-            if (a.score !== b.score) return a.score - b.score;
-            return a.rating - b.rating;
-        });
+            if (pool.length % 2 !== 0) {
+                pool.sort((a, b) => {
+                    if (a.score !== b.score) return a.score - b.score;
+                    return a.rating - b.rating;
+                });
 
-        let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
-        if (byeIndex === -1) byeIndex = 0;
+                let byeIndex = pool.findIndex(p => !receivedBye.has(p.id));
+                if (byeIndex === -1) byeIndex = 0;
 
-        let byePlayer = pool.splice(byeIndex, 1)[0];
-        roundPairings.push({
-            w: byePlayer,
-            b: {
-                name: "BYE",
-                id: "BYE_DUMMY",
-                rating: 0
-            },
-            res: "bye_win"
-        });
-    }
-
-    // ⭐ AFTER all pairings are generated (including non-BYE ones),
-    // force BYE to the bottom.
-    roundPairings.sort((a, b) => {
-        const aIsBye = a.b.id === "BYE_DUMMY";
-        const bIsBye = b.b.id === "BYE_DUMMY";
-        return aIsBye - bIsBye; // BYE goes last
-    });
-
-    return roundPairings;
-}
-
+                let byePlayer = pool.splice(byeIndex, 1)[0];
+                roundPairings.push({
+                    w: byePlayer,
+                    b: {
+                        name: "BYE",
+                        id: "BYE_DUMMY",
+                        rating: 0
+                    },
+                    res: "bye_win"
+                });
+            }
 
             let scoreGroupsMap = {};
             pool.forEach(p => {
@@ -735,7 +715,6 @@ function generatePairings() {
             } else {
                 currentRound++;
                 pairings = generatePairings();
-                saveCurrentRoundToSheet();
                 saveState();
                 render();
             }
@@ -804,7 +783,7 @@ function generatePairings() {
 
     // 2. Send to the script
     try {
-        const response = await fetch(APP_CONFIG.APPSCRIPT_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
