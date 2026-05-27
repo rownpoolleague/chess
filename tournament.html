@@ -16,9 +16,9 @@
             --neutral: #333;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+* {
+    box-sizing: border-box;
+}
 
         html,
         body {
@@ -207,7 +207,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOCelc_SVtYmWQIV4XHysiQxOiJg4qbuYkRPazsFWf1b5sJQUyYeIZNNM-Vhh7rLvtAw/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx076N9upn0fzmiGYij-SRwQjLFf1Gwfl_brZ-J9ZgbD2W5b4Da_UNdf1Xz5Mil95_rjQ/exec';
         let masterRoster = [],
             players = [],
             pairings = [],
@@ -337,53 +337,57 @@
             }
         }
 
-        function startTournament() {
-            const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
-            if (selectedIds.length < 2) return alert("Select at least 2 players");
+// Update the function signature to 'async'
+async function startTournament() {
+    const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
+    if (selectedIds.length < 2) return alert("Select at least 2 players");
 
-            tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
-            timeControl = document.getElementById('tc-select').value;
-            format = document.getElementById('fmt').value;
+    tournamentName = document.getElementById('t-name-input').value.trim() || 'CHESS TOURNAMENT';
+    timeControl = document.getElementById('tc-select').value;
+    format = document.getElementById('fmt').value;
 
-            players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
-                id: p.id,
-                name: p.name,
-                rating: p.ratings[timeControl],
-                score: 0,
-                colorScore: 0,
-                colorHistory: []
-            }));
+    players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({
+        id: p.id,
+        name: p.name,
+        rating: p.ratings[timeControl],
+        score: 0,
+        colorScore: 0,
+        colorHistory: []
+    }));
 
-            currentRound = 1;
-            history = [];
-            playedPairs.clear();
-            receivedBye.clear();
-            rrSchedules = [];
+    currentRound = 1;
+    history = [];
+    playedPairs.clear();
+    receivedBye.clear();
+    rrSchedules = [];
 
-            if (format === 'rr') {
-                totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
-                generateRoundRobinSchedules();
-            } else {
-                totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
-            }
+    if (format === 'rr') {
+        totalRounds = players.length % 2 === 0 ? players.length - 1 : players.length;
+        generateRoundRobinSchedules();
+    } else {
+        totalRounds = parseInt(document.getElementById('rnd-count').value) || 3;
+    }
 
-            pairings = generatePairings();
-            document.getElementById('setup-view').style.display = 'none';
-            document.getElementById('active-view').style.display = 'block';
-            document.getElementById('t-name-display').innerText = tournamentName;
-            document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
-            document.getElementById('dl-btn').style.display = 'none';
+    pairings = generatePairings();
+    document.getElementById('setup-view').style.display = 'none';
+    document.getElementById('active-view').style.display = 'block';
+    document.getElementById('t-name-display').innerText = tournamentName;
+    document.getElementById('t-meta-display').innerText = `${timeControl} · ${format}`;
+    document.getElementById('dl-btn').style.display = 'none';
 
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(() => {});
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            }
+    // --- NEW: CALL THE SAVING FUNCTION HERE ---
+    await saveCurrentRoundToSheet();
 
-            saveState();
-            render();
-        }
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    }
+
+    saveState();
+    render();
+}
 
         function generateRoundRobinSchedules() {
             let list = [...players].sort((a, b) => b.rating - a.rating);
@@ -759,6 +763,38 @@
         function goToMainMenu() {
             window.location.href = 'index.html';
         }
+        async function saveCurrentRoundToSheet() {
+    // 1. Prepare the data structure
+    const payload = {
+        action: 'saveRound',
+        roundNumber: currentRound,
+        // Map pairings to names for readability in the sheet
+        pairings: pairings.map(m => ({
+            white: m.w.name,
+            black: m.b.name,
+            result: m.res
+        })),
+        // Send current player scores
+        scores: players.map(p => ({
+            name: p.name,
+            score: p.score
+        }))
+    };
+
+    // 2. Send to the script
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.text();
+        console.log("Server response:", result);
+        // Optional: show a small toast or log to indicate success
+    } catch (e) {
+        console.error("Failed to save round:", e);
+    }
+}
 
         function resetTournament() {
             if (!confirm("Are you sure you want to reset and clear all data?")) return;
