@@ -105,7 +105,7 @@ footer {
         <div class="overlay">
             <h1>Main Menu</h1>
             <div class="menu-container">               
-                <a class="menu-button" href="tournament.html" onclick="goTo(event, this.href)">Admin</a>
+                <a class="menu-button" href="tournament.html" onclick="goTo(event, this.href, true)">Admin</a>
                 <a class="menu-button" href="tournamentdata.html" onclick="goTo(event, this.href)">Live Pairings</a>
       <a class="menu-button" href="tournamentresults.html" onclick="goTo(event, this.href)">Tournament History</a>
                <a class="menu-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
@@ -117,11 +117,45 @@ footer {
     </div>
 
     <script>
+      
+if (sessionStorage.getItem("adminAuth") !== "ok") {
+    window.location.href = "index.html";
+}
+
+
         // Forces pages to open inline inside the standalone fullscreen container app
         function goTo(event, url) {
             event.preventDefault();
             window.location.href = url;
         }
+        async function goTo(event, url, isAdmin = false) {
+    event.preventDefault();
+
+    if (isAdmin) {
+        const pass = prompt("Enter Admin Password:");
+        if (!pass) return;
+
+        const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "checkAdminPassword",
+                password: pass
+            })
+        });
+
+        const data = await resp.json();
+
+        if (!data.ok) {
+            alert("Incorrect password.");
+            return;
+        }
+
+        // Mark session as authenticated
+        sessionStorage.setItem("adminAuth", "ok");
+    }
+
+    window.location.href = url;
+}
     </script>
 </body>
 </html>
