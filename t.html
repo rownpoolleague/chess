@@ -140,17 +140,22 @@ function renderTournament(rounds) {
         });
 
         // ⭐ RESULTS SECTION
-        div.innerHTML += `<div class="section-title">Results</div>`;
+        div.innerHTML += `<div class="section-title">Standings</div>`;
         div.innerHTML += `<div class="scores"></div>`;
         const scoreBox = div.querySelector(".scores");
 
-        r.scores.forEach(s => {
-            scoreBox.innerHTML += `
-                <div class="score-row">
-                    ${s.name}: ${s.score}
-                </div>
-            `;
-        });
+      // ⭐ Sort standings by score DESC
+const sortedStandings = [...r.scores].sort((a, b) => b.score - a.score);
+
+// ⭐ Render standings
+sortedStandings.forEach((s, i) => {
+    scoreBox.innerHTML += `
+        <div class="score-row">
+            ${i + 1}. ${s.name}: ${s.score}
+        </div>
+    `;
+});
+
 
         container.appendChild(div);
     });
