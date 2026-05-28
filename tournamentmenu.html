@@ -98,6 +98,11 @@ footer {
     height: auto;
     width: auto;
 }
+    @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
 </style>
 </head>
 
@@ -127,6 +132,17 @@ footer {
             style="width: 100%; padding: 10px; font-size: 20px; background:#1e90ff; color:white; border:none; border-radius:6px;">
             Enter
         </button>
+        <div id="adminSpinner" style="
+    display:none;
+    margin-top:15px;
+    width:40px;
+    height:40px;
+    border:4px solid #1e90ff;
+    border-top-color: transparent;
+    border-radius:50%;
+    animation: spin 0.8s linear infinite;
+"></div>
+
     </div>
 </div>
 
@@ -165,28 +181,42 @@ async function submitAdminPassword() {
     const pass = document.getElementById("adminPass").value.trim();
     if (!pass) return;
 
-    const resp = await fetch("https://script.google.com/macros/s/AKfycbx2MRMwqUSxKnS8HGdsC1wT57fvX5deU8MkLSkm4e1N5fe2sAOgrxrJMNW6feKdYDUADA/exec", {
-        method: "POST",
-        body: JSON.stringify({
-            action: "checkAdminPassword",
-            password: pass
-        })
-    });
+    const spinner = document.getElementById("adminSpinner");
+    spinner.style.display = "block";
 
-    const data = await resp.json();
+    try {
+        const resp = await fetch("https://script.google.com/macros/s/AKfycbx2MRMwqUSxKnS8HGdsC1wT57fvX5deU8MkLSkm4e1N5fe2sAOgrxrJMNW6feKdYDUADA/exec", {
+            method: "POST",
+            body: JSON.stringify({
+                action: "checkAdminPassword",
+                password: pass
+            })
+        });
 
-    if (!data.ok) {
-        alert("Incorrect password.");
-        return;
+        const data = await resp.json();
+
+        if (!data.ok) {
+            alert("Incorrect password.");
+            return;
+        }
+
+        sessionStorage.setItem("adminAuth", "ok");
+
+        const url = document.getElementById("adminModal").dataset.url;
+        window.location.href = url;
+
+    } finally {
+        spinner.style.display = "none";
     }
-
-    // Mark session as authenticated
-    sessionStorage.setItem("adminAuth", "ok");
-
-    // Redirect to admin page
-    const url = document.getElementById("adminModal").dataset.url;
-    window.location.href = url;
 }
+      // Close modal when clicking outside the login box
+document.getElementById("adminModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        this.style.display = "none";
+    }
+});
+
+
 </script>
 
 
