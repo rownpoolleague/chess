@@ -678,66 +678,102 @@ async function startTournament() {
             render();
         }
 
-        function processRound() {
-            history.push({
-                round: currentRound,
-                matches: JSON.parse(JSON.stringify(pairings))
-            });
+function processRound() {
 
-            pairings.forEach(m => {
-                let matchW = players.find(p => p.id === m.w.id);
-                let matchB = players.find(p => p.id === m.b.id);
-
-                if (matchB && matchB.id !== "BYE_DUMMY") {
-                    playedPairs.add(`${matchW.id}-${matchB.id}`);
-                    matchW.colorHistory.push('W');
-                    matchW.colorScore += 1;
-                    matchB.colorHistory.push('B');
-                    matchB.colorScore -= 1;
-                } else if (matchW) {
-                    receivedBye.add(matchW.id);
-                }
-
-                if (m.res === 'w' || m.res === 'bye_win') {
-                    if (matchW) matchW.score += 1;
-                } else if (m.res === 'b') {
-                    if (matchB) matchB.score += 1;
-                } else if (m.res === 'd') {
-                    if (matchW) matchW.score += 0.5;
-                    if (matchB) matchB.score += 0.5;
-                }
-            });
-
-            if (currentRound >= totalRounds) {
-
-    // Determine winner (highest score)
-    const sorted = [...players].sort((a, b) => b.score - a.score);
-    const winner = sorted[0];
-
-    // Send FINAL summary row to Google
-    saveCurrentRoundToSheet({
-        roundNumber: "Final",
-        pairings: [
-            { white: "1st Place", black: winner.name }
-        ],
-        results: [
-            { name: winner.name, score: winner.score }
-        ]
+    // ⭐ 1. Save the JUST-FINISHED round into history
+    history.push({
+        round: currentRound,
+        matches: JSON.parse(JSON.stringify(pairings))
     });
 
+    // ⭐ 2. Apply results to players
+    pairings.forEach(m => {
+        let matchW = players.find(p => p.id === m.w.id);
+        let matchB = players.find(p => p.id === m.b.id);
+
+        // Track colors + played pairs
+        if (matchB && matchB.id !== "BYE_DUMMY") {
+            playedPairs.add(`${matchW.id}-${matchB.id}`);
+            matchW.colorHistory.push('W');
+            matchW.colorScore += 1;
+            matchB.colorHistory.push('B');
+            matchB.colorScore -= 1;
+        } else if (matchW) {
+            receivedBye.add(matchW.id);
+        }
+
+        // Apply scoring
+        if (m.res === 'w' || m.res === 'bye_win') {
+            if (matchW) matchW.score += 1;
+        } else if (m.res === 'b') {
+            if (matchB) matchB.score += 1;
+        } else if (m.res === 'd') {
+            if (matchW) matchW.score += 0.5;
+            if (matchB) matchB.score += 0.5;
+        }
+    });
+
+    // ⭐ 3. Capture the JUST-FINISHED round's results (needed for Google)
+    const finishedResults = pairings.map(m => ({
+        white: m.w.name,
+        black: m.b.name,
+        result: m.res
+    }));
+
+    // ⭐ 4. FINAL ROUND CHECK (fires AFTER last round is submitted)
+    if (currentRound >= totalRounds) {
+
+        // Determine winner
+        const sorted = [...players].sort((a, b) => b.score - a.score);
+        const winner = sorted[0];
+
+        // ⭐ SEND FINAL SUMMARY ROW TO GOOGLE
+        saveCurrentRoundToSheet({
+            action: "saveRound",
+            roundNumber: "Final",
+            pairings: [
+                { white: "1st Place", black: winner.name }
+            ],
+            results: finishedResults,   // <-- last round's results
+            scores: players.map(p => ({
+                name: p.name,
+                score: p.score
+            }))
+        });
+
+        // Advance + render
+        currentRound++;
+        saveState();
+        render();
+        return;
+    }
+
+    // ⭐ 5. NOT FINAL ROUND → generate next round
     currentRound++;
+
+    const nextPairings = generatePairings();
+    pairings = nextPairings;
+
+    // ⭐ 6. Send normal round data to Google
+    saveCurrentRoundToSheet({
+        action: "saveRound",
+        roundNumber: currentRound - 1,   // the round we just finished
+        pairings: nextPairings.map(m => ({
+            white: m.w.name,
+            black: m.b.name
+        })),
+        results: finishedResults,
+        scores: players.map(p => ({
+            name: p.name,
+            score: p.score
+        }))
+    });
+
+    // ⭐ 7. Save + render
     saveState();
     render();
-    return;
 }
- else {
-                currentRound++;
-                pairings = generatePairings();
-                saveState();
-                render();
-              saveCurrentRoundToSheet();
-            }
-        }
+
 
         function downloadResults() {
             let content = `TOURNAMENT REPORT: ${tournamentName.toUpperCase()}\n`;
