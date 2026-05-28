@@ -100,6 +100,34 @@ footer {
 }
 </style>
 </head>
+<div id="adminModal" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+">
+    <div style="
+        background: #111;
+        padding: 30px;
+        border-radius: 10px;
+        width: 300px;
+        border: 2px solid #1e90ff;
+        text-align: center;
+    ">
+        <h2 style="color:white; margin-top:0;">Admin Login</h2>
+        <input id="adminPass" type="password" placeholder="Password"
+            style="width: 100%; padding: 10px; font-size: 18px; margin-bottom: 20px;">
+        <button onclick="submitAdminPassword()"
+            style="width: 100%; padding: 10px; font-size: 20px; background:#1e90ff; color:white; border:none; border-radius:6px;">
+            Enter
+        </button>
+    </div>
+</div>
+
+
 <body>
     <div class="form-wrapper">
         <div class="overlay">
@@ -116,41 +144,48 @@ footer {
         </footer>
     </div>
 
-    <script>
-      
-        // Forces pages to open inline inside the standalone fullscreen container app
-        function goTo(event, url) {
-            event.preventDefault();
-            window.location.href = url;
-        }
-        async function goTo(event, url, isAdmin = false) {
+   <script>
+// Normal navigation
+function goTo(event, url, isAdmin = false) {
     event.preventDefault();
 
     if (isAdmin) {
-        const pass = prompt("Enter Admin Password:");
-        if (!pass) return;
-
-        const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "checkAdminPassword",
-                password: pass
-            })
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-            alert("Incorrect password.");
-            return;
-        }
-
-        // Mark session as authenticated
-        sessionStorage.setItem("adminAuth", "ok");
+        // Open password modal
+        document.getElementById("adminModal").style.display = "flex";
+        document.getElementById("adminModal").dataset.url = url;
+        return;
     }
 
     window.location.href = url;
 }
-    </script>
-</body>
+
+// Submit password to Apps Script
+async function submitAdminPassword() {
+    const pass = document.getElementById("adminPass").value.trim();
+    if (!pass) return;
+
+    const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "checkAdminPassword",
+            password: pass
+        })
+    });
+
+    const data = await resp.json();
+
+    if (!data.ok) {
+        alert("Incorrect password.");
+        return;
+    }
+
+    // Mark session as authenticated
+    sessionStorage.setItem("adminAuth", "ok");
+
+    // Redirect to admin page
+    const url = document.getElementById("adminModal").dataset.url;
+    window.location.href = url;
+}
+</script>
+
 </html>
