@@ -185,7 +185,7 @@ async function submitAdminPassword() {
     spinner.style.display = "block";
 
     try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbxAe5GMPI1wPVqMwQu5-IsLUEalQAekYWyYrnvkxPz_Lvyye5CJKV6NgL35VFHuGy__/exec", {
+        const resp = await fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
             method: "POST",
             body: JSON.stringify({
                 action: "checkAdminPassword",
