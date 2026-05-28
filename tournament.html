@@ -709,10 +709,28 @@ async function startTournament() {
             });
 
             if (currentRound >= totalRounds) {
-                currentRound++;
-                saveState();
-                render();
-            } else {
+
+    // Determine winner (highest score)
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    const winner = sorted[0];
+
+    // Send FINAL summary row to Google
+    saveCurrentRoundToSheet({
+        roundNumber: "Final",
+        pairings: [
+            { white: "1st Place", black: winner.name }
+        ],
+        results: [
+            { name: winner.name, score: winner.score }
+        ]
+    });
+
+    currentRound++;
+    saveState();
+    render();
+    return;
+}
+ else {
                 currentRound++;
                 pairings = generatePairings();
                 saveState();
