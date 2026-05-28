@@ -100,7 +100,10 @@ footer {
 }
 </style>
 </head>
-<div id="adminModal" style="
+
+
+<body>
+    <div id="adminModal" style="
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.85);
@@ -127,8 +130,6 @@ footer {
     </div>
 </div>
 
-
-<body>
     <div class="form-wrapper">
         <div class="overlay">
             <h1>Main Menu</h1>
@@ -144,15 +145,15 @@ footer {
         </footer>
     </div>
 
-   <script>
+  <script>
 // Normal navigation
 function goTo(event, url, isAdmin = false) {
     event.preventDefault();
 
     if (isAdmin) {
-        // Open password modal
-        document.getElementById("adminModal").style.display = "flex";
-        document.getElementById("adminModal").dataset.url = url;
+        const modal = document.getElementById("adminModal");
+        modal.style.display = "flex";
+        modal.dataset.url = url;
         return;
     }
 
@@ -187,5 +188,6 @@ async function submitAdminPassword() {
     window.location.href = url;
 }
 </script>
+
 
 </html>
