@@ -85,7 +85,7 @@ footer { text-align: center; padding: 10px 20px; }
             window.location.href = url;
         }
 
-        async function submitAdminPassword() {
+                async function submitAdminPassword() {
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
             const spinner = document.getElementById("adminSpinner");
@@ -96,14 +96,24 @@ footer { text-align: center; padding: 10px 20px; }
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
                 const data = await resp.json();
-                if (!data.ok) { alert("Incorrect password."); return; }
+                
+                if (!data.ok) { 
+                    alert("Incorrect password."); 
+                    spinner.style.display = "none";
+                    return; 
+                }
+
+                // --- THIS IS THE PART YOU WERE MISSING ---
+                sessionStorage.setItem("adminAuth", "ok");
+                // -----------------------------------------
+
                 window.location.href = document.getElementById("adminModal").dataset.url;
-            } finally { spinner.style.display = "none"; }
+            } catch (err) {
+                console.error(err);
+                spinner.style.display = "none";
+            }
         }
 
-        document.getElementById("adminModal").addEventListener("click", function(e) {
-            if (e.target === this) this.style.display = "none";
-        });
     </script>
 </body>
 </html>
