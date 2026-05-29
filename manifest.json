@@ -3,7 +3,7 @@
   "name": "SSCC MOBILE APP",
  "icons": [
     {
-      "src": "iconking.PNG",
+      "src": "iconking.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
