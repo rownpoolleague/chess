@@ -145,9 +145,8 @@ footer {
         <div class="overlay">
             <h1>Tournament Menu</h1>
             <div class="menu-container">                
-                <a class="menu-button" href="tournament.html" onclick="goTo(event, this.href, true)">Admin</a>
-                <a class="menu-button" href="tournamentdata.html" onclick="goTo(event, this.href)">Live Pairings</a>
-                <a class="menu-button" href="tournamentresults.html" onclick="goTo(event, this.href)">Tournament History</a>
+               <a class="menu-button" href="addplayer.html" onclick="goTo(event, this.href)">Add Player</a>
+                <a class="menu-button" href="tournament.html" onclick="goTo(event, this.href)">Start Tournamnet</a>
                 <a class="menu-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
             </div>
         </div>
@@ -157,6 +156,9 @@ footer {
     </div>
 
     <script>
+          if (sessionStorage.getItem("adminAuth") !== "ok") {
+    window.location.href = "index.html";
+}
         function goTo(event, url, isAdmin = false) {
             event.preventDefault();
             if (isAdmin) {
