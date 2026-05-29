@@ -10,15 +10,17 @@
 * {
     box-sizing: border-box;
 }
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100dvh;
-    background-color: #000; /* Pure black seals any possible background color bleeding entirely */
-    overflow: hidden; /* Prevents bounce scrolling on full screen mobile apps */
+    background-color: #000;
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
+
 .form-wrapper {
     position: fixed;
     top: 0;
@@ -26,25 +28,26 @@ html, body {
     right: 0;
     bottom: 0;
     height: 100dvh; 
+    background-color: #000;
     border: 4px solid #1e90ff;
-    border-radius: 12px; /* Curves matching your members and clock files */
+    border-radius: 12px;
+    background-clip: padding-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pushes main content to top/center and footer to absolute bottom */
-    
-    /* Accounts for physical notches and home bar overlays in true fullscreen mode */
     padding-top: env(safe-area-inset-top, 12px);
     padding-bottom: env(safe-area-inset-bottom, 12px);
     padding-left: env(safe-area-inset-left, 4px);
     padding-right: env(safe-area-inset-right, 4px);
 }
+
 .overlay {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centers menu vertically within available space */
+    flex-start;
     padding: 20px 10px;
 }
+
 h1 {
     text-align: center;
     color: white;
@@ -52,6 +55,7 @@ h1 {
     margin-bottom: 20px;
     font-size: 32px;
 }
+
 .menu-container {
     max-width: 500px;
     margin: 0 auto;
@@ -60,6 +64,7 @@ h1 {
     flex-direction: column;
     gap: 20px;
 }
+
 .menu-button {
     display: block;
     margin-left: auto;
@@ -73,77 +78,77 @@ h1 {
     border-radius: 8px;
     font-weight: bold;
     height: 36px;
-    line-height: 28px; /* Vertically aligns text nicely inside button */
+    line-height: 28px;
     width: 250px;
     cursor: pointer;
 }
-/* Footer styling for logo */
+
 footer {
     text-align: center;
-    padding: 10px 20px;
+    padding: 10px 20px 20px 20px;
+    margin-top: auto; /* Forces footer to bottom of flex container */
 }
+
 .footer-logo {
     max-width: 200px;
-    max-height: 15dvh; /* Limits logo size dynamically so it never overflows smaller displays */
+    max-height: 10dvh; 
     height: auto;
     width: auto;
 }
-    @keyframes spin {
+
+@keyframes spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
 }
-
 </style>
 </head>
 
-
 <body>
     <div id="adminModal" style="
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.85);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-">
-    <div style="
-        background: #111;
-        padding: 30px;
-        border-radius: 10px;
-        width: 300px;
-        border: 2px solid #1e90ff;
-        text-align: center;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
     ">
-        <h2 style="color:white; margin-top:0;">Admin Login</h2>
-        <input id="adminPass" type="password" placeholder="Password"
-            style="width: 100%; padding: 10px; font-size: 18px; margin-bottom: 20px;">
-        <button onclick="submitAdminPassword()"
-            style="width: 100%; padding: 10px; font-size: 20px; background:#1e90ff; color:white; border:none; border-radius:6px;">
-            Enter
-        </button>
-        <div id="adminSpinner" style="
-    display:none;
-    margin-top:15px;
-    width:40px;
-    height:40px;
-    border:4px solid #1e90ff;
-    border-top-color: transparent;
-    border-radius:50%;
-    animation: spin 0.8s linear infinite;
-"></div>
-
+        <div style="
+            background: #111;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            border: 2px solid #1e90ff;
+            text-align: center;
+        ">
+            <h2 style="color:white; margin-top:0;">Admin Login</h2>
+            <input id="adminPass" type="password" placeholder="Password"
+                style="width: 100%; padding: 10px; font-size: 18px; margin-bottom: 20px;">
+            <button onclick="submitAdminPassword()"
+                style="width: 100%; padding: 10px; font-size: 20px; background:#1e90ff; color:white; border:none; border-radius:6px;">
+                Enter
+            </button>
+            <div id="adminSpinner" style="
+                display:none;
+                margin: 15px auto 0 auto;
+                width:40px;
+                height:40px;
+                border:4px solid #1e90ff;
+                border-top-color: transparent;
+                border-radius:50%;
+                animation: spin 0.8s linear infinite;
+            "></div>
+        </div>
     </div>
-</div>
 
     <div class="form-wrapper">
         <div class="overlay">
-            <h1>Main Menu</h1>
-            <div class="menu-container">               
+            <h1>Tournament Menu</h1>
+            <div class="menu-container">                
                 <a class="menu-button" href="tournament.html" onclick="goTo(event, this.href, true)">Admin</a>
                 <a class="menu-button" href="tournamentdata.html" onclick="goTo(event, this.href)">Live Pairings</a>
-      <a class="menu-button" href="tournamentresults.html" onclick="goTo(event, this.href)">Tournament History</a>
-               <a class="menu-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
+                <a class="menu-button" href="tournamentresults.html" onclick="goTo(event, this.href)">Tournament History</a>
+                <a class="menu-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
             </div>
         </div>
         <footer>
@@ -151,63 +156,51 @@ footer {
         </footer>
     </div>
 
-  <script>
-// Normal navigation
-function goTo(event, url, isAdmin = false) {
-    event.preventDefault();
-
-    if (isAdmin) {
-        const modal = document.getElementById("adminModal");
-        modal.style.display = "flex";
-        modal.dataset.url = url;
-        return;
-    }
-
-    window.location.href = url;
-}
-
-// Submit password to Apps Script
-async function submitAdminPassword() {
-    const pass = document.getElementById("adminPass").value.trim();
-    if (!pass) return;
-
-    const spinner = document.getElementById("adminSpinner");
-    spinner.style.display = "block";
-
-    try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
-            method: "POST",
-            body: JSON.stringify({
-                action: "checkAdminPassword",
-                password: pass
-            })
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-            alert("Incorrect password.");
-            return;
+    <script>
+        function goTo(event, url, isAdmin = false) {
+            event.preventDefault();
+            if (isAdmin) {
+                const modal = document.getElementById("adminModal");
+                modal.style.display = "flex";
+                modal.dataset.url = url;
+                return;
+            }
+            window.location.href = url;
         }
 
-        sessionStorage.setItem("adminAuth", "ok");
+        async function submitAdminPassword() {
+            const pass = document.getElementById("adminPass").value.trim();
+            if (!pass) return;
 
-        const url = document.getElementById("adminModal").dataset.url;
-        window.location.href = url;
+            const spinner = document.getElementById("adminSpinner");
+            spinner.style.display = "block";
 
-    } finally {
-        spinner.style.display = "none";
-    }
-}
-      // Close modal when clicking outside the login box
-document.getElementById("adminModal").addEventListener("click", function(e) {
-    if (e.target === this) {
-        this.style.display = "none";
-    }
-});
+            try {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "checkAdminPassword",
+                        password: pass
+                    })
+                });
+                const data = await resp.json();
+                if (!data.ok) {
+                    alert("Incorrect password.");
+                    return;
+                }
+                sessionStorage.setItem("adminAuth", "ok");
+                const url = document.getElementById("adminModal").dataset.url;
+                window.location.href = url;
+            } finally {
+                spinner.style.display = "none";
+            }
+        }
 
-
-</script>
-
-
+        document.getElementById("adminModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
+    </script>
+</body>
 </html>
