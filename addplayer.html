@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="asfa.js"></script>
     <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
@@ -36,9 +37,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4FYG8bdsYf1k4YCTZUZ00Rg9vR3MhN04asHhtWpPK3aWAfarD2rfSbWz4dlAstRRI3Q/exec';
-
-async function registerPlayer() {
+    async function registerPlayer() {
     const name = document.getElementById('reg-name').value;
     if (!name) { alert("Name is required"); return; }
     
@@ -52,7 +51,7 @@ async function registerPlayer() {
     };
 
     try {
-        const res = await fetch(SCRIPT_URL, { 
+        const res = await fetch(APP_CONFIG.APPSCRIPT_URL, { 
             method: 'POST', 
             mode: 'no-cors', // Try removing this if it still fails, or keep it if it's currently there
             headers: {
