@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess PGN Viewer</title>
+    
+    <!-- Dependencies -->
+    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.base.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.brown.min.css">
+    
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #board { width: 360px; height: 360px; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="file" id="pgnInput" accept=".pgn,.txt">
+    </div>
+
+    <div id="board" class="cg-board"></div>
+    <div id="moveLog"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+    <script src="https://unpkg.com/chessground@8.0.0/dist/chessground.min.js"></script>
+
+    <script>
+        const game = new Chess();
+        const ground = Chessground(document.getElementById('board'), {
+            viewOnly: true,
+            coordinates: false
+        });
+
+        document.getElementById('pgnInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pgn = e.target.result;
+                game.loadPgn(pgn);
+                
+                // Update board to current position
+                ground.set({ fen: game.fen() });
+                
+                // Display Move History
+                document.getElementById('moveLog').innerText = game.history().join(', ');
+            };
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
