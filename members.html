@@ -5,7 +5,6 @@
     <script src="asfa.js"></script>
 
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover tells the browser engine to use the absolute hardware screen edges -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SSCC MEMBERS</title>
     <style>
@@ -16,40 +15,27 @@
             --text: #eee;
         }
 
-        /* Forces borders and padding to stay internal to layout dimension boundaries */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
-        html,
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100dvh;
-            /* Dynamic viewport height locks perfectly to standalone app boundaries */
             background-color: #000;
             overflow: hidden;
-            /* Prevents layout bounce scrolling on mobile devices */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         .form-wrapper {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             height: 100dvh;
             border: 4px solid #1e90ff;
             border-radius: 12px;
-            /* Smoothly curves all four corners */
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Ensures child elements don't spill past the curved corners */
-
-            /* Safe area padding keeps content cleanly out of the notch area while the border stays pinned to the glass edge */
             padding-top: env(safe-area-inset-top, 4px);
             padding-bottom: env(safe-area-inset-bottom, 4px);
             padding-left: env(safe-area-inset-left, 4px);
@@ -63,9 +49,7 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            /* Vertically scroll inside the blue frame boundaries if roster grows */
             overflow-x: hidden;
-            /* Suppresses horizontal scrolling safely */
         }
 
         header {
@@ -78,11 +62,7 @@
             width: 100%;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--accent);
-        }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
 
         .nav-button {
             background: #1e90ff;
@@ -96,12 +76,7 @@
             flex-shrink: 0;
         }
 
-        #player-list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 100%;
-        }
+        #player-list-container { display: flex; flex-direction: column; gap: 5px; width: 100%; }
 
         .player-row {
             background: #0a0a0a;
@@ -116,83 +91,177 @@
             flex-wrap: wrap;
         }
 
-        .player-name {
-            font-weight: bold;
-            font-size: 1rem;
-            color: var(--text);
-            word-break: break-word;
-        }
+        .player-name { font-weight: bold; font-size: 1rem; color: var(--text); word-break: break-word; display: flex; align-items: center; }
 
-        .player-stats {
-            font-size: 0.75rem;
-            color: #888;
-            text-align: right;
-            margin-left: auto;
-        }
+        .player-stats { font-size: 0.75rem; color: #888; text-align: right; margin-left: auto; }
 
-        .loading {
-            text-align: center;
-            color: #555;
-            margin-top: 20px;
-        }
+        .loading { text-align: center; color: #555; margin-top: 20px; }
     </style>
 </head>
 
 <body>
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100; padding:20px; overflow-y:auto; color: white;">
+    <div style="background:#1a1a1a; padding:20px; border-radius:8px; border:1px solid #444; max-width: 500px; margin: auto;">
+        
+        <h2 id="modal-player-name" style="color:var(--accent); margin:0 0 10px 0; display: flex; align-items: center;"></h2>
+        <div id="modal-ratings" style="color:#ccc; margin-bottom:15px; font-size: 0.9rem;"></div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <select id="color-filter" onchange="renderStats()" style="background:#333; color:white; padding:5px;">
+                <option value="All">All Colors</option>
+                <option value="White">White</option>
+                <option value="Black">Black</option>
+            </select>
+            <select id="opening-filter" onchange="renderStats()" style="background:#333; color:white; padding:5px;">
+                <option value="All">All Openings</option>
+            </select>
+        </div>
+        <div id="modal-stats" style="line-height: 1.6;"></div>
+        <button onclick="closeModal()" style="margin-top:15px;">Close</button>
+    </div>
+</div>
 
-    <div class="form-wrapper">
-        <div class="engine-box">
-            <header>
-                <h1>SSCC MEMBERS</h1>
-                <a class="nav-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
-            </header>
-
-            <div id="player-list-container">
-                <div class="loading">Loading members...</div>
-            </div>
+<div class="form-wrapper">
+    <div class="engine-box">
+        <header>
+            <h1>SSCC MEMBERS</h1>
+            <a class="nav-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
+        </header>
+        <div id="player-list-container">
+            <div class="loading">Loading members...</div>
         </div>
     </div>
+</div>
 
-    <script>
+<script>
+function goTo(event, url) {
+    event.preventDefault();
+    window.location.href = url;
+}
+
+function getPhotoPath(name) {
+    return `photos/${name.replace(',', '')}.jpg`;
+}
+
+let allMatchesCache = null;
+let currentMatches = [];
+let currentPlayer = "";
+
+async function fetchMatches() {
+    if (allMatchesCache) return allMatchesCache;
+    const resp = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=matches");
+    allMatchesCache = await resp.json();
+    return allMatchesCache;
+}
+
+async function showProfile(name, reg, quick, blitz) {
+    currentPlayer = name;
+    const modal = document.getElementById('profile-modal');
+    
+    document.getElementById('modal-player-name').innerHTML = `
+        <img src="${getPhotoPath(name)}" onerror="this.style.display='none'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; margin-right:15px;">
+        ${name}`;
         
+    document.getElementById('modal-ratings').innerText = `Reg: ${reg} | Quick: ${quick} | Blitz: ${blitz}`;
+    
+    const matches = await fetchMatches();
+    currentMatches = matches.filter(m => m.white === name || m.black === name);
+    
+    const openingFilter = document.getElementById('opening-filter');
+    const openings = [...new Set(currentMatches.map(m => m.opening))];
+    openingFilter.innerHTML = '<option value="All">All Openings</option>' + 
+        openings.map(o => `<option value="${o}">${o}</option>`).join('');
+    
+    renderStats();
+    modal.style.display = 'block';
+}
 
-        function goTo(event, url) {
-            event.preventDefault();
-            window.location.href = url;
-        }
+function renderStats() {
+    const colorFilter = document.getElementById('color-filter').value;
+    const openingFilter = document.getElementById('opening-filter').value;
+    
+    let filtered = currentMatches.filter(m => {
+        const matchesColor = (colorFilter === "All") || 
+                             (colorFilter === "White" ? m.white === currentPlayer : m.black === currentPlayer);
+        const matchesOpening = (openingFilter === "All") || (m.opening === openingFilter);
+        return matchesColor && matchesOpening;
+    });
 
-        async function loadPlayers() {
-            const container = document.getElementById('player-list-container');
-            try {
-                const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, {
+    const total = filtered.length;
+    const wins = filtered.filter(m => (m.white === currentPlayer && m.result === "1-0") || (m.black === currentPlayer && m.result === "0-1")).length;
+    const draws = filtered.filter(m => m.result === "1/2-1/2").length;
+    
+    const whiteGames = filtered.filter(m => m.white === currentPlayer);
+    const blackGames = filtered.filter(m => m.black === currentPlayer);
+    
+    const whiteWins = whiteGames.filter(m => m.result === "1-0").length;
+    const whiteDraws = whiteGames.filter(m => m.result === "1/2-1/2").length;
+    
+    const blackWins = blackGames.filter(m => m.result === "0-1").length;
+    const blackDraws = blackGames.filter(m => m.result === "1/2-1/2").length;
 
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                if (!resp.ok) throw new Error();
-                const allPlayers = await resp.json();
+    const winRate = total ? ((wins / total) * 100).toFixed(1) : 0;
+    const drawRate = total ? ((draws / total) * 100).toFixed(1) : 0;
+    
+    const whiteWinRate = whiteGames.length ? ((whiteWins / whiteGames.length) * 100).toFixed(1) : 0;
+    const whiteDrawRate = whiteGames.length ? ((whiteDraws / whiteGames.length) * 100).toFixed(1) : 0;
+    
+    const blackWinRate = blackGames.length ? ((blackWins / blackGames.length) * 100).toFixed(1) : 0;
+    const blackDrawRate = blackGames.length ? ((blackDraws / blackGames.length) * 100).toFixed(1) : 0;
 
-                container.innerHTML = allPlayers
-                    .filter(p => p && p[0] && p[0].trim() !== '')
-                    .map(p => {
-                        let stats = [];
-                        if (p[1]) stats.push(`Reg: ${p[1]}`);
-                        if (p[2]) stats.push(`Quick: ${p[2]}`);
-                        if (p[3]) stats.push(`Blitz: ${p[3]}`);
+    document.getElementById('modal-stats').innerHTML = `
+        <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
+            <strong>Overall Stats (${colorFilter} / ${openingFilter})</strong>
+            <p>Total: ${total} | Wins: ${wins} | Draws: ${draws} | Win Rate: ${winRate}%</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <strong>As White</strong>
+                <p>${whiteGames.length} Games</p>
+                <p>Wins: ${whiteWins} | Draws: ${whiteDraws}</p>
+                <p>${whiteWinRate}% Win Rate</p>
+            </div>
+            <div>
+                <strong>As Black</strong>
+                <p>${blackGames.length} Games</p>
+                <p>Wins: ${blackWins} | Draws: ${blackDraws}</p>
+                <p>${blackWinRate}% Win Rate</p>
+            </div>
+        </div>
+    `;
+}
 
-                        return `
-                        <div class="player-row">
-                            <div class="player-name">${p[0]}</div>
-                            ${stats.length ? `<div class="player-stats">${stats.join(' | ')}</div>` : ''}
-                        </div>`;
-                    }).join('');
-            } catch (e) {
-                container.innerHTML = '<div class="loading" style="color:#ef4444;">Failed to load. Check connection.</div>';
-            }
-        }
+function closeModal() { document.getElementById('profile-modal').style.display = 'none'; }
 
-        window.onload = loadPlayers;
-    </script>
+async function loadPlayers() {
+    const container = document.getElementById('player-list-container');
+    try {
+        const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'GET', mode: 'cors' });
+        if (!resp.ok) throw new Error();
+        const allPlayers = await resp.json();
+
+        container.innerHTML = allPlayers
+            .filter(p => p && p[0] && p[0].trim() !== '')
+            .map(p => {
+                let stats = [];
+                if (p[1]) stats.push(`Reg: ${p[1]}`);
+                if (p[2]) stats.push(`Quick: ${p[2]}`);
+                if (p[3]) stats.push(`Blitz: ${p[3]}`);
+                return `
+                <div class="player-row" onclick="showProfile('${p[0]}', '${p[1]}', '${p[2]}', '${p[3]}')" style="cursor:pointer;">
+                    <div class="player-name">
+                        <img src="${getPhotoPath(p[0])}" onerror="this.style.display='none'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:15px;">
+                        ${p[0]}
+                    </div>
+                    ${stats.length ? `<div class="player-stats">${stats.join(' | ')}</div>` : ''}
+                </div>`;
+            }).join('');
+    } catch (e) {
+        container.innerHTML = '<div class="loading" style="color:#ef4444;">Failed to load. Check connection.</div>';
+    }
+}
+
+window.onload = loadPlayers;
+</script>
 </body>
-
 </html>
