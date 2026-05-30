@@ -1,164 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="asfa.js"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUBMIT MATCH</title>
+    <title>SSCC PGN Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <style>
-        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        header { padding: 10px 0; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
-        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
-        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
-        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; }
-        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; }
+        :root {
+            --bg: #050505;
+            --panel: #111;
+            --border: #222;
+            --accent: #3b82f6;
+            --text: #e5e5e5;
+            --muted: #888;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: radial-gradient(circle at top, #111 0, #000 55%, #000 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 20px;
+            margin: 0 0 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .file-input {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        .file-input input[type="file"] {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 720px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        #board {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        #controls button {
+            background: #1b1b1b;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #controls button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        #controls button:disabled {
+            opacity: 0.35;
+            cursor: default;
+            border-color: var(--border);
+            color: var(--muted);
+        }
+        #moveList {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            max-height: 360px;
+            overflow-y: auto;
+            margin: 0;
+        }
+        .meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .tag {
+            display: inline-block;
+            background: #181818;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 0 4px 4px 0;
+        }
+        .current-move {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .status {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
     </style>
+
+    <!-- chessboard.js + chess.js from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 </head>
 <body>
-
-<header><h1>SUBMIT MATCH</h1></header>
-
-<div id="confirmation-modal" class="modal-overlay">
-    <div class="modal-box">
-        <p id="modal-text">Processing...</p>
-        <button class="modal-btn" onclick="closeModal()">OK</button>
+<div class="wrap">
+    <div class="top-bar">
+        <h1>SSCC PGN Viewer</h1>
+        <label class="file-input">
+            <span>Load PGN:</span>
+            <input type="file" id="pgnUpload" accept=".pgn,text/plain">
+        </label>
     </div>
-</div>
 
-<div id="view-match">
-    <select id="format" onchange="updatePlayerDropdowns()">
-        <option value="Regular">Regular</option>
-        <option value="Quick">Quick</option>
-        <option value="Blitz">Blitz</option>
-    </select>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
-        <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
+    <div class="layout">
+        <div>
+            <div id="board" class="panel"></div>
+            <div id="controls">
+                <button id="btnFirst" onclick="firstMove()">⏮</button>
+                <button id="btnPrev" onclick="prevMove()">◀</button>
+                <button id="btnNext" onclick="nextMove()">▶</button>
+                <button id="btnLast" onclick="lastMove()">⏭</button>
+            </div>
+            <div class="status" id="statusText">Load a PGN file to begin.</div>
+        </div>
+
+        <div class="panel">
+            <div class="meta" id="metaTags"></div>
+            <pre id="moveList"></pre>
+        </div>
     </div>
-    
-    <select id="opening" onchange="updateVariations()">
-        <option value="" disabled selected>Choose Opening...</option>
-        <option value="A00: Uncommon / Flank">Flank Openings</option>
-        <option value="B01: Scandinavian Defense">Scandinavian Defense 1.e4 d5</option>
-        <option value="B10: Caro-Kann Defense">Caro-Kann Defense 1.e4 c6</option>
-        <option value="B20: Sicilian Defense">Sicilian Defense 1.e4 c5</option>
-        <option value="C00: French Defense">French Defense 1.e4 e6</option>
-        <option value="C41: Philidor Defense">Philidor Defense 1.e4 e5 2.Nf3 d6</option>
-        <option value="C42: Petrov's">Petrov's 1.e4 e5 2.Nf3 Nf6</option>
-        <option value="C50: Italian Game>Italian Game 1.e4 e5 2.Nf3 Nc6 3.Bc4</option>
-        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez 1.e4 e5 2.Nf3 Nc6 3.Bb5</option>        
-        <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
-        <option value="D02: London System">London System (D02)</option>
-        <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
-        <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
-    </select>
-
-    <select id="variation" disabled>
-        <option value="">Choose Variation...</option>
-    </select>
-
-    <select id="result">
-        <option value="" disabled selected>Result...</option>
-        <option value="1-0">1 - 0</option>
-        <option value="0.5-0.5">½ - ½</option>
-        <option value="0-1">0 - 1</option>
-    </select>
-    <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4FYG8bdsYf1k4YCTZUZ00Rg9vR3MhN04asHhtWpPK3aWAfarD2rfSbWz4dlAstRRI3Q/exec';
-    
-    const variationsData = {
-        "A00: Uncommon / Flank": ["1.c4 – English Opening", "1.Nf3 – Zukertort Opening / Réti Opening", "1.f4 – Bird’s Opening", "1.b3 – Larsen’s Opening", "1.g3 – King’s Fianchetto Opening / Benko’s Opening", "1.a3 – Anderssen’s Opening", "1.a4 – Ware Opening", "1.b4 – Sokolsky Opening / Polish Opening / Orangutan", "1.c3 – Saragossa Opening", "1.d3 – Mieses Opening", "1.e3 – Van’t Kruijs Opening", "1.f3 – Barnes/Gedult’s Opening", "1.g4 – Grob’s Attack", "1.h3 – Clemenz/Basman’s Attack", "1.h4 – Desprez/Kadas Opening", "1.Na3 – Durkin’s Attack / Sodium Attack", "1.Nc3 – Dunst Opening", "1.Nh3 – Amar/Paris Opening"],
-        "B01: Scandinavian Defense": ["Modern Variation", "Classical Variation"],
-        "B10: Caro-Kann Defense": ["Advance – 3.e5", "Classical – 3.Nc3", "Exchange – 3.exd5", "Panov-Botvinnik – 3.exd5 cxd5 4.c4", "Two Knights – 2.Nf3 d5 3.Nc3"],
-        "B20: Sicilian Defense": ["Najdorf – 5...a6", "Dragon – 5...g6", "Sveshnikov – 4...e5", "Classical – 4...Nf6", "Accelerated Dragon – 4...g6", "Kan – 4...a6", "Taimanov – 4...e6", "Scheveningen – 5...e6"],
-        "C00: French Defense": ["Winawer – 3...Bb4", "Classical – 3...Nf6", "Advance – 3.e5", "Tarrasch – 3.Nd2", "Steinitz – 3.Nc3", "Burn – 3.Nc3 Nf6 4.Bg5 dxe4", "Exchange - 2.exd5"],
-        "C41: Philidor Defense": ["Exchange – 3...exd4", "Nimzowitsch – 3...Nf6", "Hanham – 3...Nd7", "Countergambit – 3...f5", "Steinitz – 3...Be7 4.c3"],
-        "C42: Petrov's": ["Classical – 3.Nxe5", "Steinitz – 3.d4", "Three Knights – 3.Nc3", "Italian – 3.Bc4", "Closed – 3.d3", "Damiano – 3...Nxe4", "Stafford – 3...Nc6", "Cochrane – 4.Nxf7"],
-        "C50: Italian Game": ["Giuoco Piano – 3.Bc4", "Evans Gambit – 3.Bc4 Bc5 4.b4", "Two Knights Defense – 3.Bc4 Nf6", "Hungarian Defense – 3.Bc4 Be7", "Anti-Fried Liver – 3.Bc4 Nf6 4.d3"],
-        "C60: Ruy Lopez (Spanish)": ["Berlin Defense – 3...Nf6", "Morphy Defense – 3...a6", "Steinitz Defense – 3...d6", "Schliemann Defense – 3...f5", "Classical Defense – 3...Bc5", "Exchange Variation – 4.Bxc6 dxc6", "Modern Steinitz Defense – 3...d6 4.d4", "Bird Defense – 3...Nd4", "Cozio Defense – 3...Nge7", "Smyslov Defense – 3...g6", "Duras Variation – 3...f5 4.d3", "Rubinstein Defense – 3...Nf6 4.d3"],
-        "D00: Queen's Pawn Game": ["Standard"],
-        "D02: London System": ["Standard"],
-        "D06: Queen's Gambit": ["Accepted", "Declined"],
-        "E00: Indian Defenses": ["King's Indian", "Nimzo-Indian"]
-    };
+    let chess = new Chess();
+    let moves = [];
+    let index = 0;
+    let board;
 
-    let allPlayers = [];
-
-    async function loadPlayers() {
-        try {
-            const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
-            allPlayers = await resp.json();
-            updatePlayerDropdowns();
-        } catch (e) { console.error("Load failed"); }
+    function setButtons() {
+        document.getElementById("btnFirst").disabled = (index === 0);
+        document.getElementById("btnPrev").disabled  = (index === 0);
+        document.getElementById("btnNext").disabled  = (index >= moves.length);
+        document.getElementById("btnLast").disabled  = (index >= moves.length);
     }
 
-    function updatePlayerDropdowns() {
-        const f = document.getElementById('format').value;
-        const idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
-        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}" data-elo="${p[idx]||''}">${p[0]}</option>`).join('');
-        document.getElementById('p1-select').innerHTML = opt;
-        document.getElementById('p2-select').innerHTML = opt;
+    function renderMeta() {
+        const tags = chess.header();
+        const container = document.getElementById("metaTags");
+        const keys = ["Event","Site","Date","Round","White","Black","Result"];
+        const html = keys
+            .filter(k => tags[k])
+            .map(k => `<span class="tag">${k}: ${tags[k]}</span>`)
+            .join("");
+        container.innerHTML = html || "<span class=\"tag\">No PGN tags</span>";
     }
 
-    function updateVariations() {
-        const opening = document.getElementById('opening').value;
-        const varSelect = document.getElementById('variation');
-        varSelect.innerHTML = '<option value="">Choose Variation...</option>' + 
-                              variationsData[opening].map(v => `<option value="${v}">${v}</option>`).join('');
-        varSelect.disabled = false;
+    function renderMoveList() {
+        if (!moves.length) {
+            document.getElementById("moveList").textContent = "";
+            return;
+        }
+        let out = [];
+        for (let i = 0; i < moves.length; i++) {
+            const ply = i + 1;
+            const m = moves[i];
+            const san = m.san;
+            const marker = (i === index - 1) ? " ←" : "";
+            out.push(ply + ". " + san + marker);
+        }
+        document.getElementById("moveList").innerHTML = out
+            .map((line, i) =>
+                (i === index - 1)
+                    ? `<span class="current-move">${line}</span>`
+                    : line
+            ).join("\n");
     }
 
-    function updateEloField(p) {
-        const s = document.getElementById(p + '-select');
-        document.getElementById(p + 'elo').value = s.options[s.selectedIndex]?.getAttribute('data-elo') || '';
+    function resetToStart() {
+        chess.reset();
+        index = 0;
+        board.position("start");
+        renderMoveList();
+        setButtons();
     }
 
-    function clearForm() {
-        document.getElementById('p1-select').value = "";
-        document.getElementById('p2-select').value = "";
-        document.getElementById('p1elo').value = "";
-        document.getElementById('p2elo').value = "";
-        document.getElementById('opening').selectedIndex = 0;
-        document.getElementById('variation').innerHTML = '<option value="">Choose Variation...</option>';
-        document.getElementById('variation').disabled = true;
-        document.getElementById('result').selectedIndex = 0;
+    function nextMove() {
+        if (index >= moves.length) return;
+        chess.move(moves[index]);
+        index++;
+        board.position(chess.fen());
+        renderMoveList();
+        setButtons();
+        updateStatus();
     }
 
-    async function submitMatch() {
-        const openingVal = document.getElementById('opening').value;
-        const variationVal = document.getElementById('variation').value;
-        
-        // Combines them into one string so Apps Script doesn't need to change
-        const fullOpening = variationVal ? `${openingVal} - ${variationVal}` : openingVal;
-
-        const d = { 
-            action: 'addMatch', 
-            p1: document.getElementById('p1-select').value, 
-            p1elo: document.getElementById('p1elo').value, 
-            p2: document.getElementById('p2-select').value, 
-            p2elo: document.getElementById('p2elo').value, 
-            white: document.getElementById('p1-select').value, 
-            black: document.getElementById('p2-select').value, 
-            opening: fullOpening, 
-            result: document.getElementById('result').value, 
-            format: document.getElementById('format').value 
-        };
-        document.getElementById('confirmation-modal').style.display = 'flex';
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
-            document.getElementById('modal-text').innerText = "Match submitted successfully!";
-            clearForm();
-        } catch (e) { document.getElementById('modal-text').innerText = "Network error"; }
+    function prevMove() {
+        if (index <= 0) return;
+        chess.undo();
+        index--;
+        board.position(chess.fen());
+        renderMoveList();
+        setButtons();
+        updateStatus();
     }
 
-    function closeModal() { document.getElementById('confirmation-modal').style.display = 'none'; }
-    window.onload = loadPlayers;
+    function firstMove() {
+        resetToStart();
+        updateStatus();
+    }
+
+    function lastMove() {
+        chess.reset();
+        for (let i = 0; i < moves.length; i++) chess.move(moves[i]);
+        index = moves.length;
+        board.position(chess.fen());
+        renderMoveList();
+        setButtons();
+        updateStatus();
+    }
+
+    function updateStatus() {
+        const statusEl = document.getElementById("statusText");
+        if (!moves.length) {
+            statusEl.textContent = "Load a PGN file to begin.";
+            return;
+        }
+        let text = `Move ${index} of ${moves.length}`;
+        if (chess.game_over()) {
+            if (chess.in_checkmate()) text += " • Checkmate";
+            else if (chess.in_draw()) text += " • Draw";
+        }
+        statusEl.textContent = text;
+    }
+
+    document.getElementById("pgnUpload").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const text = await file.text();
+
+        chess = new Chess();
+        const ok = chess.load_pgn(text, { sloppy: true });
+
+        if (!ok) {
+            alert("Invalid PGN file.");
+            chess = new Chess();
+            moves = [];
+            resetToStart();
+            document.getElementById("metaTags").innerHTML = "";
+            updateStatus();
+            return;
+        }
+
+        moves = chess.history({ verbose: true });
+        resetToStart();
+        renderMeta();
+        updateStatus();
+    });
+
+    board = Chessboard("board", {
+        position: "start",
+        draggable: false
+    });
+
+    setButtons();
 </script>
 </body>
 </html>
