@@ -1,165 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TOURNAMENT ENGINE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUBMIT MATCH</title>
     <style>
-        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; --danger: #b91c1c; --neutral: #333; }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; height: 100%; background-color: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .form-wrapper { width: 100%; height: 100dvh; border: 4px solid #1e90ff; border-radius: 32px; display: flex; flex-direction: column; overflow: hidden; padding-top: calc(env(safe-area-inset-top, 2px) + 1px); padding-bottom: env(safe-area-inset-bottom, 2px); padding-left: env(safe-area-inset-left, 2px); padding-right: env(safe-area-inset-right, 2px); }
-        .engine-box { flex: 1; background: var(--bg); padding: 15px; display: flex; flex-direction: column; overflow-y: auto; }
-        select, input, .action-btn { width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; background: #181818; color: white; font-size: 16px; }
-        .action-btn { background: var(--go); border: none; font-weight: bold; cursor: pointer; }
-        .p-label { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; cursor: pointer; color: var(--text); }
-        .p-label input { width: auto; margin: 0 10px 0 0; }
-        .match-card { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 4px; border-left: 4px solid #333; color: var(--text); }
-        .res-btn { flex: 1; padding: 8px; background: #222; border: 1px solid #444; color: white; cursor: pointer; }
-        .res-btn.active { background: var(--accent); }
-        .standings { margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; font-size: 0.9rem; color: var(--text); margin-bottom: 20px; }
-        .util-row { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid #222; }
-        .util-btn { flex: 1; padding: 12px; font-size: 14px; font-weight: bold; color: #fff; background: var(--neutral); border: 1px solid #444; border-radius: 4px; cursor: pointer; }
-        .util-btn.reset-color { background: var(--danger); border-color: #991b1b; }
-        #t-meta-display { font-size: 1rem; color: #888; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-        #t-name-display { font-size: 1.25rem; font-weight: 800; color: #1e90ff; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px; }
+        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        header { padding: 10px 0; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
+        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
+        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; }
+        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; }
     </style>
 </head>
-
 <body>
-    <div class="form-wrapper">
-        <div class="engine-box">
-            <div id="setup-view">
-                <input type="text" id="t-name-input" placeholder="Tournament Name" autocomplete="off">
-                <select id="tc-select" onchange="updateRosterRatings()">
-                    <option value="regular">Regular Rating</option>
-                    <option value="quick">Quick Rating</option>
-                    <option value="blitz">Blitz Rating</option>
-                </select>
-                <select id="fmt" onchange="toggleRounds()">
-                    <option value="swiss">Swiss</option>
-                    <option value="rr">Round Robin</option>
-                </select>
-                <input type="number" id="rnd-count" placeholder="Number of Rounds" value="3">
-                <div id="roster-list" style="max-height: 50vh; overflow-y: auto; background: #000; padding: 10px; border-radius: 4px;"></div>
-                <button class="action-btn" style="margin-top: 10px;" onclick="startTournament()">BEGIN</button>
-            </div>
-            <div id="active-view" style="display: none;">
-                <div id="t-name-display"></div>
-                <div id="t-meta-display"></div>
-                <div id="round-title" style="font-weight: bold; margin-bottom: 10px; color: var(--text);"></div>
-                <div id="pairings-list"></div>
-                <button id="next-btn" class="action-btn" style="display: none;" onclick="processRound()">NEXT ROUND</button>
-                <button id="dl-btn" class="action-btn" style="display: none; background: #3b82f6;" onclick="downloadResults()">DOWNLOAD RESULTS</button>
-                <div class="standings">
-                    <div style="font-weight:bold; margin-bottom: 5px;">STANDINGS</div>
-                    <div id="standings-list"></div>
-                </div>
-            </div>
-            <div class="util-row">
-                <button class="util-btn" onclick="goToMainMenu()">Main Menu</button>
-                <button class="util-btn reset-color" onclick="resetTournament()">Reset Tournament</button>
-            </div>
-        </div>
+
+<header><h1>SUBMIT MATCH</h1></header>
+
+<div id="confirmation-modal" class="modal-overlay">
+    <div class="modal-box">
+        <p id="modal-text">Processing...</p>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
     </div>
+</div>
 
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnwsrtu1gZL9FY76S8u9nfVx_4pbE-C4-SWY1Xx6opDiieS5RYR9O6ithRji1wrK8o/exec';
-        let masterRoster = [], players = [], pairings = [], currentRound = 1, totalRounds = 0, format = '', history = [];
-        let tournamentName = '', timeControl = 'regular';
-        let playedPairs = new Set(), receivedBye = new Set(), rrSchedules = [];
+<div id="view-match">
+    <select id="format" onchange="updatePlayerDropdowns()">
+        <option value="Regular">Regular</option>
+        <option value="Quick">Quick</option>
+        <option value="Blitz">Blitz</option>
+    </select>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div><select id="p1-select" onchange="updateEloField('p1')"><option value="">P1</option></select><input type="number" id="p1elo" placeholder="ELO" readonly></div>
+        <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
+    </div>
+    
+    <select id="opening">
+        <option value="" disabled selected>Choose Opening...</option>
+        <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
+        <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
+        <option value="B10: Caro-Kann Defense">Caro-Kann Defense (B10)</option>
+        <option value="B20: Sicilian Defense">Sicilian Defense (B20)</option>
+        <option value="C00: French Defense">French Defense (C00)</option>
+        <option value="C41: Philidor Defense">Philidor Defense (C41)</option>
+        <option value="C50: Italian Game / Giuoco Piano">Italian Game (C50)</option>
+        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez (C60)</option>
+        <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
+        <option value="D02: London System">London System (D02)</option>
+        <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
+        <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
+    </select>
 
-        async function load() {
-            try {
-                const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
-                const playerArray = data.players ? data.players : data;
-                masterRoster = playerArray.map(p => ({
-                    id: p[0], name: p[0], ratings: { regular: parseRating(p[1]), quick: parseRating(p[2]), blitz: parseRating(p[3]) },
-                    rating: 0, score: 0, colorScore: 0, colorHistory: []
-                }));
-                loadState();
-                if (players.length === 0) updateRosterRatings();
-            } catch (e) { loadState(); }
-        }
+    <select id="result">
+        <option value="" disabled selected>Result...</option>
+        <option value="1-0">1 - 0</option>
+         <option value="0.5-0.5">½ - ½</option>
+        <option value="0-1">0 - 1</option>
+       
+    </select>
+    <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
+</div>
 
-        async function saveTournamentToSheet() {
-            const payload = {
-                action: 'saveTournament',
-                name: tournamentName,
-                format: format,
-                tc: timeControl,
-                state: localStorage.getItem('chess_tournament_state')
-            };
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (e) { console.error("Save failed", e); }
-        }
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwICYY6WRDzPPXbO70Fxa9eGz4qWREHX7pEXGozNR_QYfeHHBFDciPGy2Cwhbpq7AUQZQ/exec';
+    let allPlayers = [];
 
-        function parseRating(val) { const p = parseInt(val); return isNaN(p) ? 0 : p; }
+    async function loadPlayers() {
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
+            allPlayers = await resp.json();
+            updatePlayerDropdowns();
+        } catch (e) { console.error("Load failed"); }
+    }
 
-        function updateRosterRatings() {
-            timeControl = document.getElementById('tc-select').value;
-            masterRoster.forEach(p => p.rating = p.ratings[timeControl]);
-            document.getElementById('roster-list').innerHTML = masterRoster.map(p => `<label class="p-label"><input type="checkbox" class="p-select" value="${p.id}"> ${p.name} (${p.rating || 'UNR'})</label>`).join('');
-        }
+    function updatePlayerDropdowns() {
+        const f = document.getElementById('format').value;
+        const idx = (f === 'Quick') ? 2 : (f === 'Blitz' ? 3 : 1);
+        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}" data-elo="${p[idx]||''}">${p[0]}</option>`).join('');
+        document.getElementById('p1-select').innerHTML = opt;
+        document.getElementById('p2-select').innerHTML = opt;
+    }
 
-        function toggleRounds() { document.getElementById('rnd-count').style.display = document.getElementById('fmt').value === 'rr' ? 'none' : 'block'; }
+    function updateEloField(p) {
+        const s = document.getElementById(p + '-select');
+        document.getElementById(p + 'elo').value = s.options[s.selectedIndex]?.getAttribute('data-elo') || '';
+    }
 
-        function saveState() {
-            const state = { tournamentName, timeControl, players, pairings, currentRound, totalRounds, format, history, playedPairs: Array.from(playedPairs), receivedBye: Array.from(receivedBye), rrSchedules };
-            localStorage.setItem('chess_tournament_state', JSON.stringify(state));
-        }
+    function clearForm() {
+        document.getElementById('p1-select').value = "";
+        document.getElementById('p2-select').value = "";
+        document.getElementById('p1elo').value = "";
+        document.getElementById('p2elo').value = "";
+        document.getElementById('opening').selectedIndex = 0;
+        document.getElementById('result').selectedIndex = 0;
+    }
 
-        function loadState() {
-            const saved = localStorage.getItem('chess_tournament_state');
-            if (!saved) return;
-            const state = JSON.parse(saved);
-            Object.assign(window, state);
-            playedPairs = new Set(state.playedPairs);
-            receivedBye = new Set(state.receivedBye);
-            if (players.length > 0) {
-                document.getElementById('setup-view').style.display = 'none';
-                document.getElementById('active-view').style.display = 'block';
-                render();
-            }
-        }
+    async function submitMatch() {
+        const d = { 
+            action: 'addMatch', 
+            p1: document.getElementById('p1-select').value, 
+            p1elo: document.getElementById('p1elo').value, 
+            p2: document.getElementById('p2-select').value, 
+            p2elo: document.getElementById('p2elo').value, 
+            white: document.getElementById('p1-select').value, 
+            black: document.getElementById('p2-select').value, 
+            opening: document.getElementById('opening').value, 
+            result: document.getElementById('result').value, 
+            format: document.getElementById('format').value 
+        };
+        document.getElementById('confirmation-modal').style.display = 'flex';
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
+            document.getElementById('modal-text').innerText = "Match submitted successfully!";
+            clearForm();
+        } catch (e) { document.getElementById('modal-text').innerText = "Network error"; }
+    }
 
-        async function startTournament() {
-            const selectedIds = Array.from(document.querySelectorAll('.p-select:checked')).map(cb => cb.value);
-            if (selectedIds.length < 2) return alert("Select at least 2 players");
-            tournamentName = document.getElementById('t-name-input').value.trim() || 'TOURNAMENT';
-            timeControl = document.getElementById('tc-select').value;
-            format = document.getElementById('fmt').value;
-            players = masterRoster.filter(p => selectedIds.includes(p.id)).map(p => ({ ...p, score: 0, colorScore: 0, colorHistory: [] }));
-            currentRound = 1; history = []; playedPairs.clear(); receivedBye.clear();
-            if (format === 'rr') { totalRounds = players.length; generateRoundRobinSchedules(); }
-            else { totalRounds = parseInt(document.getElementById('rnd-count').value) || 3; }
-            pairings = generatePairings();
-            saveState();
-            await saveTournamentToSheet(); // Send to Google Sheets
-            document.getElementById('setup-view').style.display = 'none';
-            document.getElementById('active-view').style.display = 'block';
-            render();
-        }
-
-        // Add standard functions (generateRoundRobinSchedules, generatePairings, etc. remain the same)
-        // ... (Keep existing logic here) ...
-
-        function render() { /* Existing render logic */ }
-        function setRes(i, res) { pairings[i].res = res; saveState(); render(); }
-        function processRound() { /* Existing process logic */ }
-        function downloadResults() { /* Existing download logic */ }
-        function goToMainMenu() { window.location.href = 'index.html'; }
-        function resetTournament() { localStorage.removeItem('chess_tournament_state'); location.reload(); }
-
-        window.onload = load;
-    </script>
+    function closeModal() { document.getElementById('confirmation-modal').style.display = 'none'; }
+    window.onload = loadPlayers;
+</script>
 </body>
 </html>
