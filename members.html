@@ -139,8 +139,10 @@ function goTo(event, url) {
     window.location.href = url;
 }
 
+// Strips the comma so "Smith, John" becomes "Smith John" for filename matching
 function getPhotoPath(name) {
-    return `photos/${name.replace(',', '')}.jpg`;
+    const cleanName = name.replace(',', '');
+    return `photos/${cleanName}.jpg`;
 }
 
 let allMatchesCache = null;
@@ -189,42 +191,31 @@ function renderStats() {
 
     const total = filtered.length;
     const wins = filtered.filter(m => (m.white === currentPlayer && m.result === "1-0") || (m.black === currentPlayer && m.result === "0-1")).length;
-    const draws = filtered.filter(m => m.result === "1/2-1/2").length;
     
     const whiteGames = filtered.filter(m => m.white === currentPlayer);
     const blackGames = filtered.filter(m => m.black === currentPlayer);
     
     const whiteWins = whiteGames.filter(m => m.result === "1-0").length;
-    const whiteDraws = whiteGames.filter(m => m.result === "1/2-1/2").length;
-    
     const blackWins = blackGames.filter(m => m.result === "0-1").length;
-    const blackDraws = blackGames.filter(m => m.result === "1/2-1/2").length;
 
     const winRate = total ? ((wins / total) * 100).toFixed(1) : 0;
-    const drawRate = total ? ((draws / total) * 100).toFixed(1) : 0;
-    
     const whiteWinRate = whiteGames.length ? ((whiteWins / whiteGames.length) * 100).toFixed(1) : 0;
-    const whiteDrawRate = whiteGames.length ? ((whiteDraws / whiteGames.length) * 100).toFixed(1) : 0;
-    
     const blackWinRate = blackGames.length ? ((blackWins / blackGames.length) * 100).toFixed(1) : 0;
-    const blackDrawRate = blackGames.length ? ((blackDraws / blackGames.length) * 100).toFixed(1) : 0;
 
     document.getElementById('modal-stats').innerHTML = `
         <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
             <strong>Overall Stats (${colorFilter} / ${openingFilter})</strong>
-            <p>Total: ${total} | Wins: ${wins} | Draws: ${draws} | Win Rate: ${winRate}%</p>
+            <p>Total: ${total} | Win Rate: ${winRate}%</p>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
                 <strong>As White</strong>
                 <p>${whiteGames.length} Games</p>
-                <p>Wins: ${whiteWins} | Draws: ${whiteDraws}</p>
                 <p>${whiteWinRate}% Win Rate</p>
             </div>
             <div>
                 <strong>As Black</strong>
                 <p>${blackGames.length} Games</p>
-                <p>Wins: ${blackWins} | Draws: ${blackDraws}</p>
                 <p>${blackWinRate}% Win Rate</p>
             </div>
         </div>
