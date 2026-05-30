@@ -91,7 +91,7 @@
             flex-wrap: wrap;
         }
 
-        .player-name { font-weight: bold; font-size: 1rem; color: var(--text); word-break: break-word; }
+        .player-name { font-weight: bold; font-size: 1rem; color: var(--text); word-break: break-word; display: flex; align-items: center; }
 
         .player-stats { font-size: 0.75rem; color: #888; text-align: right; margin-left: auto; }
 
@@ -102,8 +102,8 @@
 <body>
 <div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100; padding:20px; overflow-y:auto; color: white;">
     <div style="background:#1a1a1a; padding:20px; border-radius:8px; border:1px solid #444; max-width: 500px; margin: auto;">
-        <button onclick="closeModal()" style="margin-bottom:10px;">Close</button>
-        <h2 id="modal-player-name" style="color:var(--accent); margin:0;"></h2>
+        
+        <h2 id="modal-player-name" style="color:var(--accent); margin:0 0 10px 0; display: flex; align-items: center;"></h2>
         <div id="modal-ratings" style="color:#ccc; margin-bottom:15px; font-size: 0.9rem;"></div>
         
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -117,6 +117,7 @@
             </select>
         </div>
         <div id="modal-stats" style="line-height: 1.6;"></div>
+        <button onclick="closeModal()" style="margin-top:15px;">Close</button>
     </div>
 </div>
 
@@ -152,7 +153,11 @@ async function fetchMatches() {
 async function showProfile(name, reg, quick, blitz) {
     currentPlayer = name;
     const modal = document.getElementById('profile-modal');
-    document.getElementById('modal-player-name').innerText = name;
+    
+    document.getElementById('modal-player-name').innerHTML = `
+        <img src="photos/${name}.jpg" onerror="this.style.display='none'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; margin-right:15px;">
+        ${name}`;
+        
     document.getElementById('modal-ratings').innerText = `Reg: ${reg} | Quick: ${quick} | Blitz: ${blitz}`;
     
     const matches = await fetchMatches();
@@ -229,7 +234,10 @@ async function loadPlayers() {
                 if (p[3]) stats.push(`Blitz: ${p[3]}`);
                 return `
                 <div class="player-row" onclick="showProfile('${p[0]}', '${p[1]}', '${p[2]}', '${p[3]}')" style="cursor:pointer;">
-                    <div class="player-name">${p[0]}</div>
+                    <div class="player-name">
+                        <img src="photos/${p[0]}.jpg" onerror="this.style.display='none'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:15px;">
+                        ${p[0]}
+                    </div>
                     ${stats.length ? `<div class="player-stats">${stats.join(' | ')}</div>` : ''}
                 </div>`;
             }).join('');
