@@ -44,6 +44,7 @@
 
         #clock-overlay { position: absolute; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 5px; width: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
         .side-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #333; }
+        .menu-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #1e90ff; }
         .side-btn span { display: block; transform: rotate(90deg); white-space: nowrap; font-size: 0.9rem; }
         #pause-btn { background: var(--go); }
         
@@ -85,7 +86,7 @@
     <div id="clock-overlay">
         <button id="reset-btn" class="side-btn" onclick="resetClock()"><span>RESET</span></button>
         <button id="pause-btn" class="side-btn" onclick="armClock()"><span>START</span></button>
-        <a class="side-btn" style= "background-color: #1e90ff" href="index.html">Menu</a>
+        <a class="menu-btn" href="index.html">Menu</a>
     </div>
 </div>
 
