@@ -3,18 +3,41 @@
 <head>
     <script src="asfa.js"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SUBMIT MATCH</title>
     <style>
-        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; --go: #22c55e; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        header { padding: 10px 0; text-align: center; border-bottom: 1px solid #222; margin-bottom: 15px; }
-        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #181818; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
-        .action-btn { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 4px; margin-top: 10px; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
-        .modal-box { background: #111; border: 1px solid #222; width: 85%; max-width: 320px; padding: 20px; text-align: center; border-radius: 6px; }
-        .modal-btn { width: 100%; padding: 12px; background: var(--go); border: none; color: white; font-weight: bold; border-radius: 4px; }
+        :root { --bg: #000; --card: #111; --accent: #3b82f6; --text: #eee; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        header { padding: 10px 0; text-align: center; margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); letter-spacing: 1px; }
+
+        /* The "On Screen" Style */
+        select { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 5px 0; 
+            background: #151515; 
+            border: 1px solid #222; 
+            color: #ccc; 
+            border-radius: 4px; 
+            font-size: 0.9rem;
+            appearance: none; /* Removes default styling */
+            -webkit-appearance: none;
+        }
+
+        .action-btn { 
+            width: 100%; 
+            padding: 12px; 
+            background: var(--accent); 
+            border: none; 
+            color: white; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            margin-top: 15px; 
+        }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: center; justify-content: center; }
+        .modal-box { background: #111; border: 1px solid #222; width: 80%; padding: 20px; text-align: center; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -24,70 +47,53 @@
 <div id="confirmation-modal" class="modal-overlay">
     <div class="modal-box">
         <p id="modal-text">Processing...</p>
-        <button class="modal-btn" onclick="closeModal()">OK</button>
+        <button class="action-btn" onclick="closeModal()">OK</button>
     </div>
 </div>
 
 <div id="view-match">
-    <select id="format">
-        <option value="Regular">Regular</option>
-        <option value="Quick">Quick</option>
-        <option value="Blitz">Blitz</option>
-    </select>
+    <select id="format"><option value="Regular">Format: Regular</option><option value="Quick">Format: Quick</option><option value="Blitz">Format: Blitz</option></select>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <select id="p1-select"><option value="">P1</option></select>
-        <select id="p2-select"><option value="">P2</option></select>
+        <select id="p1-select"><option value="">White</option></select>
+        <select id="p2-select"><option value="">Black</option></select>
     </div>
     
     <select id="opening">
-        <option value="" disabled selected>Choose Opening...</option>
-        <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
-        <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
-        <option value="B10: Caro-Kann Defense">Caro-Kann Defense (B10)</option>
-        <option value="B20: Sicilian Defense">Sicilian Defense (B20)</option>
-        <option value="C00: French Defense">French Defense (C00)</option>
-        <option value="C41: Philidor Defense">Philidor Defense (C41)</option>
-        <option value="C50: Italian Game / Giuoco Piano">Italian Game (C50)</option>
-        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez (C60)</option>
-        <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
-        <option value="D02: London System">London System (D02)</option>
-        <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
-        <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
+        <option value="" disabled selected>Opening...</option>
+        <option value="A00">Flank (A00)</option><option value="B01">Scandinavian (B01)</option>
+        <option value="B10">Caro-Kann (B10)</option><option value="B20">Sicilian (B20)</option>
+        <option value="C00">French (C00)</option><option value="C41">Philidor (C41)</option>
+        <option value="C50">Italian (C50)</option><option value="C60">Ruy Lopez (C60)</option>
+        <option value="D00">Queen's Pawn (D00)</option><option value="D02">London (D02)</option>
+        <option value="D06">Queen's Gambit (D06)</option><option value="E00">Indian (E00)</option>
     </select>
 
     <select id="result">
         <option value="" disabled selected>Result...</option>
-        <option value="1-0">1 - 0</option>
-        <option value="0.5-0.5">½ - ½</option>
-        <option value="0-1">0 - 1</option>
+        <option value="1-0">White Wins (1-0)</option>
+        <option value="0.5-0.5">Draw (½-½)</option>
+        <option value="0-1">Black Wins (0-1)</option>
     </select>
-    <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
+    
+    <button class="action-btn" onclick="submitMatch()">SUBMIT</button>
 </div>
 
 <script>
-    
     let allPlayers = [];
 
     async function loadPlayers() {
         try {
-            const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'GET', mode: 'cors' });
+            const resp = await fetch(APP_CONFIG.APPSCRIPT_URL);
             allPlayers = await resp.json();
             updatePlayerDropdowns();
         } catch (e) { console.error("Load failed"); }
     }
 
     function updatePlayerDropdowns() {
-        const opt = '<option value="">Select Player...</option>' + allPlayers.map(p => `<option value="${p[0]}">${p[0]}</option>`).join('');
-        document.getElementById('p1-select').innerHTML = opt;
-        document.getElementById('p2-select').innerHTML = opt;
-    }
-
-    function clearForm() {
-        document.getElementById('p1-select').value = "";
-        document.getElementById('p2-select').value = "";
-        document.getElementById('opening').selectedIndex = 0;
-        document.getElementById('result').selectedIndex = 0;
+        const opt = allPlayers.map(p => `<option value="${p[0]}">${p[0]}</option>`).join('');
+        document.getElementById('p1-select').innerHTML = '<option value="">White</option>' + opt;
+        document.getElementById('p2-select').innerHTML = '<option value="">Black</option>' + opt;
     }
 
     async function submitMatch() {
@@ -95,8 +101,6 @@
             action: 'addMatch', 
             p1: document.getElementById('p1-select').value, 
             p2: document.getElementById('p2-select').value, 
-            white: document.getElementById('p1-select').value, 
-            black: document.getElementById('p2-select').value, 
             opening: document.getElementById('opening').value, 
             result: document.getElementById('result').value, 
             format: document.getElementById('format').value 
@@ -104,9 +108,10 @@
         document.getElementById('confirmation-modal').style.display = 'flex';
         try {
             await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'POST', body: JSON.stringify(d) });
-            document.getElementById('modal-text').innerText = "Match submitted successfully!";
-            clearForm();
-        } catch (e) { document.getElementById('modal-text').innerText = "Network error"; }
+            document.getElementById('modal-text').innerText = "Match Recorded!";
+            document.getElementById('p1-select').value = "";
+            document.getElementById('p2-select').value = "";
+        } catch (e) { document.getElementById('modal-text').innerText = "Error - Try Again"; }
     }
 
     function closeModal() { document.getElementById('confirmation-modal').style.display = 'none'; }
