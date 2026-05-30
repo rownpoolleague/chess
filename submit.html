@@ -59,7 +59,7 @@
         <select id="p2-select"><option value="">Black</option></select>
     </div>
     
-    <select id="opening">
+    <select id="opening" onchange="updateVariations()">
         <option value="" disabled selected>Opening...</option>
         <option value="A00">Flank (A00)</option><option value="B01">Scandinavian (B01)</option>
         <option value="B10">Caro-Kann (B10)</option><option value="B20">Sicilian (B20)</option>
@@ -67,6 +67,10 @@
         <option value="C50">Italian (C50)</option><option value="C60">Ruy Lopez (C60)</option>
         <option value="D00">Queen's Pawn (D00)</option><option value="D02">London (D02)</option>
         <option value="D06">Queen's Gambit (D06)</option><option value="E00">Indian (E00)</option>
+    </select>
+
+    <select id="variation" disabled>
+        <option value="">Variation...</option>
     </select>
 
     <select id="result">
@@ -80,6 +84,12 @@
 </div>
 
 <script>
+    const variationsData = {
+        "A00": ["None"], "B01": ["None"], "B10": ["None"], "B20": ["Najdorf", "Dragon"],
+        "C00": ["None"], "C41": ["None"], "C50": ["Giuoco Piano", "Evans Gambit"], 
+        "C60": ["None"], "D00": ["None"], "D02": ["None"], "D06": ["None"], "E00": ["None"]
+    };
+
     let allPlayers = [];
 
     async function loadPlayers() {
@@ -96,12 +106,20 @@
         document.getElementById('p2-select').innerHTML = '<option value="">Black</option>' + opt;
     }
 
+    function updateVariations() {
+        const opening = document.getElementById('opening').value;
+        const varSelect = document.getElementById('variation');
+        varSelect.innerHTML = variationsData[opening].map(v => `<option value="${v}">${v}</option>`).join('');
+        varSelect.disabled = false;
+    }
+
     async function submitMatch() {
         const d = { 
             action: 'addMatch', 
             p1: document.getElementById('p1-select').value, 
             p2: document.getElementById('p2-select').value, 
-            opening: document.getElementById('opening').value, 
+            opening: document.getElementById('opening').value,
+            variation: document.getElementById('variation').value,
             result: document.getElementById('result').value, 
             format: document.getElementById('format').value 
         };
