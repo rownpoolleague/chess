@@ -7,60 +7,58 @@
 
     <style>
         body {
-            background: #111;
+            background: #000;
             color: #eee;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
         h1 {
             text-align: center;
             margin: 30px 0;
-            font-size: 60px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -1px;
         }
 
         #content {
-            width: 95%;
-            max-width: 1800px;
+            width: 100%;
+            max-width: 800px;
             margin: auto;
         }
 
         .round {
-            background: #1c1c1c;
-            padding: 40px;
-            margin-bottom: 40px;
-            border-radius: 14px;
-            border: 1px solid #333;
-            font-size: 34px;
+            background: #111;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 16px;
+            border: 1px solid #222;
         }
 
         .round h2 {
             margin-top: 0;
-            color: #4fc3f7;
-            font-size: 50px;
-            margin-bottom: 30px;
+            color: #1e90ff;
+            font-size: 32px;
+            margin-bottom: 25px;
             text-align: center;
         }
 
         /* SECTION HEADERS */
         .section-title {
-            font-size: 42px;
-            margin: 25px 0 15px 0;
+            font-size: 24px;
+            margin: 30px 0 15px 0;
             color: #f7d14f;
-            font-weight: bold;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
+            font-weight: 600;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
         }
 
         /* PAIRINGS */
         .pairing {
-            padding: 20px 0;
-            border-bottom: 1px solid #333;
-            font-size: 38px;
-            line-height: 1.4;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+            font-size: 20px;
         }
 
         .pairing:last-child {
@@ -69,16 +67,14 @@
 
         /* SCORES / RESULTS */
         .scores {
-            margin-top: 30px;
-            padding: 25px;
-            background: #222;
-            border-radius: 12px;
-            font-size: 36px;
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 20px;
         }
 
         .score-row {
-            padding: 12px 0;
-            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
         }
 
         .score-row:last-child {
@@ -134,7 +130,7 @@ function renderTournament(rounds) {
             div.innerHTML += `
                 <div class="pairing">
                     <strong>${p.white}</strong> vs <strong>${p.black}</strong>
-                    <br>Result: ${p.result === null ? "—" : p.result}
+                    <br><small style="color:#888;">Result: ${p.result === null ? "—" : p.result}</small>
                 </div>
             `;
         });
@@ -144,18 +140,17 @@ function renderTournament(rounds) {
         div.innerHTML += `<div class="scores"></div>`;
         const scoreBox = div.querySelector(".scores");
 
-      // ⭐ Sort standings by score DESC
-const sortedStandings = [...r.scores].sort((a, b) => b.score - a.score);
+        // ⭐ Sort standings by score DESC
+        const sortedStandings = [...r.scores].sort((a, b) => b.score - a.score);
 
-// ⭐ Render standings
-sortedStandings.forEach((s, i) => {
-    scoreBox.innerHTML += `
-        <div class="score-row">
-            ${i + 1}. ${s.name}: ${s.score}
-        </div>
-    `;
-});
-
+        // ⭐ Render standings
+        sortedStandings.forEach((s, i) => {
+            scoreBox.innerHTML += `
+                <div class="score-row">
+                    ${i + 1}. ${s.name}: <strong>${s.score}</strong>
+                </div>
+            `;
+        });
 
         container.appendChild(div);
     });
