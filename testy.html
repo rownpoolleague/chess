@@ -41,14 +41,15 @@
     
     <select id="opening" onchange="updateVariations()">
         <option value="" disabled selected>Choose Opening...</option>
-        <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
-        <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
-        <option value="B10: Caro-Kann Defense">Caro-Kann Defense (B10)</option>
-        <option value="B20: Sicilian Defense">Sicilian Defense (B20)</option>
-        <option value="C00: French Defense">French Defense (C00)</option>
-        <option value="C41: Philidor Defense">Philidor Defense (C41)</option>
-        <option value="C50: Italian Game / Giuoco Piano">Italian Game (C50)</option>
-        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez (C60)</option>
+        <option value="A00: Uncommon / Flank">Flank Openings</option>
+        <option value="B01: Scandinavian Defense">Scandinavian Defense 1.e4 d5</option>
+        <option value="B10: Caro-Kann Defense">Caro-Kann Defense 1.e4 c6</option>
+        <option value="B20: Sicilian Defense">Sicilian Defense 1.e4 c5</option>
+        <option value="C00: French Defense">French Defense 1.e4 e6</option>
+        <option value="C41: Philidor Defense">Philidor Defense 1.e4 e5 2.Nf3 d6</option>
+        <option value="C42: Petrov's">Petrov's 1.e4 e5 2.Nf3 Nf6</option>
+        <option value="C50: Italian Game>Italian Game 1.e4 e5 2.Nf3 Nc6 3.Bc4</option>
+        <option value="C60: Ruy Lopez (Spanish)">Ruy Lopez 1.e4 e5 2.Nf3 Nc6 3.Bb5</option>        
         <option value="D00: Queen's Pawn Game">Queen's Pawn Game (D00)</option>
         <option value="D02: London System">London System (D02)</option>
         <option value="D06: Queen's Gambit">Queen's Gambit (D06)</option>
@@ -72,14 +73,15 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4FYG8bdsYf1k4YCTZUZ00Rg9vR3MhN04asHhtWpPK3aWAfarD2rfSbWz4dlAstRRI3Q/exec';
     
     const variationsData = {
-        "A00: Uncommon / Flank": ["Standard"],
+        "A00: Uncommon / Flank": ["1.c4 – English Opening", "1.Nf3 – Zukertort Opening / Réti Opening", "1.f4 – Bird’s Opening", "1.b3 – Larsen’s Opening", "1.g3 – King’s Fianchetto Opening / Benko’s Opening", "1.a3 – Anderssen’s Opening", "1.a4 – Ware Opening", "1.b4 – Sokolsky Opening / Polish Opening / Orangutan", "1.c3 – Saragossa Opening", "1.d3 – Mieses Opening", "1.e3 – Van’t Kruijs Opening", "1.f3 – Barnes/Gedult’s Opening", "1.g4 – Grob’s Attack", "1.h3 – Clemenz/Basman’s Attack", "1.h4 – Desprez/Kadas Opening", "1.Na3 – Durkin’s Attack / Sodium Attack", "1.Nc3 – Dunst Opening", "1.Nh3 – Amar/Paris Opening"],
         "B01: Scandinavian Defense": ["Modern Variation", "Classical Variation"],
-        "B10: Caro-Kann Defense": ["Advance Variation", "Classical Variation", "Exchange Variation"],
-        "B20: Sicilian Defense": ["Najdorf", "Dragon", "Sveshnikov", "Classical"],
-        "C00: French Defense": ["Winawer", "Classical", "Advance", "Tarrasch"],
-        "C41: Philidor Defense": ["Standard"],
-        "C50: Italian Game / Giuoco Piano": ["Giuoco Piano", "Evans Gambit", "Two Knights"],
-        "C60: Ruy Lopez (Spanish)": ["Berlin Defense", "Morphy Defense"],
+        "B10: Caro-Kann Defense": ["Advance – 3.e5", "Classical – 3.Nc3", "Exchange – 3.exd5", "Panov-Botvinnik – 3.exd5 cxd5 4.c4", "Two Knights – 2.Nf3 d5 3.Nc3"],
+        "B20: Sicilian Defense": ["Najdorf – 5...a6", "Dragon – 5...g6", "Sveshnikov – 4...e5", "Classical – 4...Nf6", "Accelerated Dragon – 4...g6", "Kan – 4...a6", "Taimanov – 4...e6", "Scheveningen – 5...e6"],
+        "C00: French Defense": ["Winawer – 3...Bb4", "Classical – 3...Nf6", "Advance – 3.e5", "Tarrasch – 3.Nd2", "Steinitz – 3.Nc3", "Burn – 3.Nc3 Nf6 4.Bg5 dxe4", "Exchange - 2.exd5"],
+        "C41: Philidor Defense": ["Exchange – 3...exd4", "Nimzowitsch – 3...Nf6", "Hanham – 3...Nd7", "Countergambit – 3...f5", "Steinitz – 3...Be7 4.c3"],
+        "C42: Petrov's": ["Classical – 3.Nxe5", "Steinitz – 3.d4", "Three Knights – 3.Nc3", "Italian – 3.Bc4", "Closed – 3.d3", "Damiano – 3...Nxe4", "Stafford – 3...Nc6", "Cochrane – 4.Nxf7"],
+        "C50: Italian Game": ["Giuoco Piano – 3.Bc4", "Evans Gambit – 3.Bc4 Bc5 4.b4", "Two Knights Defense – 3.Bc4 Nf6", "Hungarian Defense – 3.Bc4 Be7", "Anti-Fried Liver – 3.Bc4 Nf6 4.d3"],
+        "C60: Ruy Lopez (Spanish)": ["Berlin Defense – 3...Nf6", "Morphy Defense – 3...a6", "Steinitz Defense – 3...d6", "Schliemann Defense – 3...f5", "Classical Defense – 3...Bc5", "Exchange Variation – 4.Bxc6 dxc6", "Modern Steinitz Defense – 3...d6 4.d4", "Bird Defense – 3...Nd4", "Cozio Defense – 3...Nge7", "Smyslov Defense – 3...g6", "Duras Variation – 3...f5 4.d3", "Rubinstein Defense – 3...Nf6 4.d3"],
         "D00: Queen's Pawn Game": ["Standard"],
         "D02: London System": ["Standard"],
         "D06: Queen's Gambit": ["Accepted", "Declined"],
