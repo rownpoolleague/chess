@@ -1,258 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <script src="asfa.js"></script>
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SSCC MEMBERS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess PGN Viewer</title>
+    
+    <!-- Dependencies -->
+    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.base.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.brown.min.css">
+    
     <style>
-        :root {
-            --bg: #000;
-            --card: #111;
-            --accent: #3b82f6;
-            --text: #eee;
-        }
-
-        * { box-sizing: border-box; }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100dvh;
-            background-color: #000;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        .form-wrapper {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            height: 100dvh;
-            border: 4px solid #1e90ff;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding-top: env(safe-area-inset-top, 4px);
-            padding-bottom: env(safe-area-inset-bottom, 4px);
-            padding-left: env(safe-area-inset-left, 4px);
-            padding-right: env(safe-area-inset-right, 4px);
-        }
-
-        .engine-box {
-            flex: 1;
-            background: var(--bg);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        header {
-            padding-bottom: 12px;
-            border-bottom: 1px solid #222;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
-
-        .nav-button {
-            background: #1e90ff;
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        #player-list-container { display: flex; flex-direction: column; gap: 5px; width: 100%; }
-
-        .player-row {
-            background: #0a0a0a;
-            padding: 15px;
-            border-bottom: 1px solid #222;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .player-name { font-weight: bold; font-size: 1rem; color: var(--text); word-break: break-word; display: flex; align-items: center; }
-
-        .player-stats { font-size: 0.75rem; color: #888; text-align: right; margin-left: auto; }
-
-        .loading { text-align: center; color: #555; margin-top: 20px; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #board { width: 360px; height: 360px; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; }
     </style>
 </head>
-
 <body>
-<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100; padding:20px; overflow-y:auto; color: white;">
-    <div style="background:#1a1a1a; padding:20px; border-radius:8px; border:1px solid #444; max-width: 500px; margin: auto;">
-        
-        <h2 id="modal-player-name" style="color:var(--accent); margin:0 0 10px 0; display: flex; align-items: center;"></h2>
-        <div id="modal-ratings" style="color:#ccc; margin-bottom:15px; font-size: 0.9rem;"></div>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <select id="color-filter" onchange="renderStats()" style="background:#333; color:white; padding:5px;">
-                <option value="All">All Colors</option>
-                <option value="White">White</option>
-                <option value="Black">Black</option>
-            </select>
-            <select id="opening-filter" onchange="renderStats()" style="background:#333; color:white; padding:5px;">
-                <option value="All">All Openings</option>
-            </select>
-        </div>
-        <div id="modal-stats" style="line-height: 1.6;"></div>
-        <button onclick="closeModal()" style="margin-top:15px;">Close</button>
+
+    <div class="controls">
+        <input type="file" id="pgnInput" accept=".pgn,.txt">
     </div>
-</div>
 
-<div class="form-wrapper">
-    <div class="engine-box">
-        <header>
-            <h1>SSCC MEMBERS</h1>
-            <a class="nav-button" href="index.html" onclick="goTo(event, this.href)">Main Menu</a>
-        </header>
-        <div id="player-list-container">
-            <div class="loading">Loading members...</div>
-        </div>
-    </div>
-</div>
+    <div id="board" class="cg-board"></div>
+    <div id="moveLog"></div>
 
-<script>
-function goTo(event, url) {
-    event.preventDefault();
-    window.location.href = url;
-}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+    <script src="https://unpkg.com/chessground@8.0.0/dist/chessground.min.js"></script>
 
-// Strips the comma so "Smith, John" becomes "Smith John" for filename matching
-function getPhotoPath(name) {
-    const cleanName = name.replace(',', '');
-    return `photos/${cleanName}.jpg`;
-}
+    <script>
+        const game = new Chess();
+        const ground = Chessground(document.getElementById('board'), {
+            viewOnly: true,
+            coordinates: false
+        });
 
-let allMatchesCache = null;
-let currentMatches = [];
-let currentPlayer = "";
+        document.getElementById('pgnInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-async function fetchMatches() {
-    if (allMatchesCache) return allMatchesCache;
-    const resp = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=matches");
-    allMatchesCache = await resp.json();
-    return allMatchesCache;
-}
-
-async function showProfile(name, reg, quick, blitz) {
-    currentPlayer = name;
-    const modal = document.getElementById('profile-modal');
-    
-    document.getElementById('modal-player-name').innerHTML = `
-        <img src="${getPhotoPath(name)}" onerror="this.style.display='none'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; margin-right:15px;">
-        ${name}`;
-        
-    document.getElementById('modal-ratings').innerText = `Reg: ${reg} | Quick: ${quick} | Blitz: ${blitz}`;
-    
-    const matches = await fetchMatches();
-    currentMatches = matches.filter(m => m.white === name || m.black === name);
-    
-    const openingFilter = document.getElementById('opening-filter');
-    const openings = [...new Set(currentMatches.map(m => m.opening))];
-    openingFilter.innerHTML = '<option value="All">All Openings</option>' + 
-        openings.map(o => `<option value="${o}">${o}</option>`).join('');
-    
-    renderStats();
-    modal.style.display = 'block';
-}
-
-function renderStats() {
-    const colorFilter = document.getElementById('color-filter').value;
-    const openingFilter = document.getElementById('opening-filter').value;
-    
-    let filtered = currentMatches.filter(m => {
-        const matchesColor = (colorFilter === "All") || 
-                             (colorFilter === "White" ? m.white === currentPlayer : m.black === currentPlayer);
-        const matchesOpening = (openingFilter === "All") || (m.opening === openingFilter);
-        return matchesColor && matchesOpening;
-    });
-
-    const total = filtered.length;
-    const wins = filtered.filter(m => (m.white === currentPlayer && m.result === "1-0") || (m.black === currentPlayer && m.result === "0-1")).length;
-    
-    const whiteGames = filtered.filter(m => m.white === currentPlayer);
-    const blackGames = filtered.filter(m => m.black === currentPlayer);
-    
-    const whiteWins = whiteGames.filter(m => m.result === "1-0").length;
-    const blackWins = blackGames.filter(m => m.result === "0-1").length;
-
-    const winRate = total ? ((wins / total) * 100).toFixed(1) : 0;
-    const whiteWinRate = whiteGames.length ? ((whiteWins / whiteGames.length) * 100).toFixed(1) : 0;
-    const blackWinRate = blackGames.length ? ((blackWins / blackGames.length) * 100).toFixed(1) : 0;
-
-    document.getElementById('modal-stats').innerHTML = `
-        <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
-            <strong>Overall Stats (${colorFilter} / ${openingFilter})</strong>
-            <p>Total: ${total} | Win Rate: ${winRate}%</p>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-                <strong>As White</strong>
-                <p>${whiteGames.length} Games</p>
-                <p>${whiteWinRate}% Win Rate</p>
-            </div>
-            <div>
-                <strong>As Black</strong>
-                <p>${blackGames.length} Games</p>
-                <p>${blackWinRate}% Win Rate</p>
-            </div>
-        </div>
-    `;
-}
-
-function closeModal() { document.getElementById('profile-modal').style.display = 'none'; }
-
-async function loadPlayers() {
-    const container = document.getElementById('player-list-container');
-    try {
-        const resp = await fetch(APP_CONFIG.APPSCRIPT_URL, { method: 'GET', mode: 'cors' });
-        if (!resp.ok) throw new Error();
-        const allPlayers = await resp.json();
-
-        container.innerHTML = allPlayers
-            .filter(p => p && p[0] && p[0].trim() !== '')
-            .map(p => {
-                let stats = [];
-                if (p[1]) stats.push(`Reg: ${p[1]}`);
-                if (p[2]) stats.push(`Quick: ${p[2]}`);
-                if (p[3]) stats.push(`Blitz: ${p[3]}`);
-                return `
-                <div class="player-row" onclick="showProfile('${p[0]}', '${p[1]}', '${p[2]}', '${p[3]}')" style="cursor:pointer;">
-                    <div class="player-name">
-                        <img src="${getPhotoPath(p[0])}" onerror="this.style.display='none'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:15px;">
-                        ${p[0]}
-                    </div>
-                    ${stats.length ? `<div class="player-stats">${stats.join(' | ')}</div>` : ''}
-                </div>`;
-            }).join('');
-    } catch (e) {
-        container.innerHTML = '<div class="loading" style="color:#ef4444;">Failed to load. Check connection.</div>';
-    }
-}
-
-window.onload = loadPlayers;
-</script>
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pgn = e.target.result;
+                game.loadPgn(pgn);
+                
+                // Update board to current position
+                ground.set({ fen: game.fen() });
+                
+                // Display Move History
+                document.getElementById('moveLog').innerText = game.history().join(', ');
+            };
+            reader.readAsText(file);
+        });
+    </script>
 </body>
 </html>
