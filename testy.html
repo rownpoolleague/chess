@@ -1,305 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>SSCC PGN Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <style>
-        :root {
-            --bg: #050505;
-            --panel: #111;
-            --border: #222;
-            --accent: #3b82f6;
-            --text: #e5e5e5;
-            --muted: #888;
-        }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: radial-gradient(circle at top, #111 0, #000 55%, #000 100%);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .wrap {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-        h1 {
-            font-size: 20px;
-            margin: 0 0 10px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .file-input {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 13px;
-        }
-        .file-input input[type="file"] {
-            font-size: 12px;
-            color: var(--muted);
-        }
-        .layout {
-            display: grid;
-            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-            gap: 12px;
-        }
-        @media (max-width: 720px) {
-            .layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        #board {
-            max-width: 420px;
-            margin: 0 auto;
-        }
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        #controls {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        #controls button {
-            background: #1b1b1b;
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        #controls button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        #controls button:disabled {
-            opacity: 0.35;
-            cursor: default;
-            border-color: var(--border);
-            color: var(--muted);
-        }
-        #moveList {
-            font-family: "SF Mono", Menlo, Consolas, monospace;
-            font-size: 12px;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            max-height: 360px;
-            overflow-y: auto;
-            margin: 0;
-        }
-        .meta {
-            font-size: 11px;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-        .tag {
-            display: inline-block;
-            background: #181818;
-            border-radius: 4px;
-            padding: 2px 6px;
-            margin: 0 4px 4px 0;
-        }
-        .current-move {
-            color: var(--accent);
-            font-weight: 600;
-        }
-        .status {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 6px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>SSCC PGN Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- chessboard.js + chess.js from CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+<!-- Chessboard.js + Chess.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+<style>
+    body {
+        background: #000;
+        color: #eee;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        padding: 15px;
+    }
+    #board {
+        width: 340px;
+        margin: 0 auto;
+        border: 2px solid #333;
+    }
+    #controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 12px;
+    }
+    #controls button {
+        padding: 8px 14px;
+        background: #222;
+        border: 1px solid #444;
+        color: #eee;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    #controls button:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+    #moveList {
+        margin-top: 20px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 14px;
+    }
+</style>
 </head>
+
 <body>
-<div class="wrap">
-    <div class="top-bar">
-        <h1>SSCC PGN Viewer</h1>
-        <label class="file-input">
-            <span>Load PGN:</span>
-            <input type="file" id="pgnUpload" accept=".pgn,text/plain">
-        </label>
-    </div>
 
-    <div class="layout">
-        <div>
-            <div id="board" class="panel"></div>
-            <div id="controls">
-                <button id="btnFirst" onclick="firstMove()">⏮</button>
-                <button id="btnPrev" onclick="prevMove()">◀</button>
-                <button id="btnNext" onclick="nextMove()">▶</button>
-                <button id="btnLast" onclick="lastMove()">⏭</button>
-            </div>
-            <div class="status" id="statusText">Load a PGN file to begin.</div>
-        </div>
+<h2>SSCC PGN Viewer</h2>
 
-        <div class="panel">
-            <div class="meta" id="metaTags"></div>
-            <pre id="moveList"></pre>
-        </div>
-    </div>
+<input type="file" id="pgnUpload" accept=".pgn">
+
+<div id="board"></div>
+
+<div id="controls">
+    <button onclick="firstMove()">⏮</button>
+    <button onclick="prevMove()">◀</button>
+    <button onclick="nextMove()">▶</button>
+    <button onclick="lastMove()">⏭</button>
 </div>
 
+<pre id="moveList"></pre>
+
 <script>
-    let chess = new Chess();
-    let moves = [];
-    let index = 0;
-    let board;
+let chess = new Chess();
+let moves = [];
+let index = 0;
 
-    function setButtons() {
-        document.getElementById("btnFirst").disabled = (index === 0);
-        document.getElementById("btnPrev").disabled  = (index === 0);
-        document.getElementById("btnNext").disabled  = (index >= moves.length);
-        document.getElementById("btnLast").disabled  = (index >= moves.length);
-    }
+let board = Chessboard('board', {
+    position: 'start',
+    draggable: false
+});
 
-    function renderMeta() {
-        const tags = chess.header();
-        const container = document.getElementById("metaTags");
-        const keys = ["Event","Site","Date","Round","White","Black","Result"];
-        const html = keys
-            .filter(k => tags[k])
-            .map(k => `<span class="tag">${k}: ${tags[k]}</span>`)
-            .join("");
-        container.innerHTML = html || "<span class=\"tag\">No PGN tags</span>";
-    }
+document.getElementById("pgnUpload").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const text = await file.text();
 
-    function renderMoveList() {
-        if (!moves.length) {
-            document.getElementById("moveList").textContent = "";
-            return;
-        }
-        let out = [];
-        for (let i = 0; i < moves.length; i++) {
-            const ply = i + 1;
-            const m = moves[i];
-            const san = m.san;
-            const marker = (i === index - 1) ? " ←" : "";
-            out.push(ply + ". " + san + marker);
-        }
-        document.getElementById("moveList").innerHTML = out
-            .map((line, i) =>
-                (i === index - 1)
-                    ? `<span class="current-move">${line}</span>`
-                    : line
-            ).join("\n");
-    }
+    chess = new Chess();
+    chess.load_pgn(text);
 
-    function resetToStart() {
-        chess.reset();
-        index = 0;
-        board.position("start");
-        renderMoveList();
-        setButtons();
-    }
+    moves = chess.history({ verbose: true });
+    index = 0;
 
-    function nextMove() {
-        if (index >= moves.length) return;
-        chess.move(moves[index]);
-        index++;
-        board.position(chess.fen());
-        renderMoveList();
-        setButtons();
-        updateStatus();
-    }
+    board.position("start");
+    renderMoveList();
+});
 
-    function prevMove() {
-        if (index <= 0) return;
-        chess.undo();
-        index--;
-        board.position(chess.fen());
-        renderMoveList();
-        setButtons();
-        updateStatus();
-    }
+function renderMoveList() {
+    const list = moves.map((m, i) =>
+        `${i+1}. ${m.san}${i === index-1 ? " ←" : ""}`
+    ).join("\n");
 
-    function firstMove() {
-        resetToStart();
-        updateStatus();
-    }
+    document.getElementById("moveList").textContent = list;
+}
 
-    function lastMove() {
-        chess.reset();
-        for (let i = 0; i < moves.length; i++) chess.move(moves[i]);
-        index = moves.length;
-        board.position(chess.fen());
-        renderMoveList();
-        setButtons();
-        updateStatus();
-    }
+function nextMove() {
+    if (index >= moves.length) return;
+    chess.move(moves[index]);
+    index++;
+    board.position(chess.fen());
+    renderMoveList();
+}
 
-    function updateStatus() {
-        const statusEl = document.getElementById("statusText");
-        if (!moves.length) {
-            statusEl.textContent = "Load a PGN file to begin.";
-            return;
-        }
-        let text = `Move ${index} of ${moves.length}`;
-        if (chess.game_over()) {
-            if (chess.in_checkmate()) text += " • Checkmate";
-            else if (chess.in_draw()) text += " • Draw";
-        }
-        statusEl.textContent = text;
-    }
+function prevMove() {
+    if (index <= 0) return;
+    chess.undo();
+    index--;
+    board.position(chess.fen());
+    renderMoveList();
+}
 
-    document.getElementById("pgnUpload").addEventListener("change", async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+function firstMove() {
+    chess.reset();
+    index = 0;
+    board.position("start");
+    renderMoveList();
+}
 
-        const text = await file.text();
-
-        chess = new Chess();
-        const ok = chess.load_pgn(text, { sloppy: true });
-
-        if (!ok) {
-            alert("Invalid PGN file.");
-            chess = new Chess();
-            moves = [];
-            resetToStart();
-            document.getElementById("metaTags").innerHTML = "";
-            updateStatus();
-            return;
-        }
-
-        moves = chess.history({ verbose: true });
-        resetToStart();
-        renderMeta();
-        updateStatus();
-    });
-
-    board = Chessboard("board", {
-        position: "start",
-        draggable: false
-    });
-
-    setButtons();
+function lastMove() {
+    chess.reset();
+    for (let i = 0; i < moves.length; i++) chess.move(moves[i]);
+    index = moves.length;
+    board.position(chess.fen());
+    renderMoveList();
+}
 </script>
+
 </body>
 </html>
