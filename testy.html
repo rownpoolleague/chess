@@ -9,54 +9,67 @@
     <style>
         #board { width: 400px; margin: 20px auto; }
         .controls { text-align: center; font-family: sans-serif; }
-        #moveList { width: 400px; height: 100px; margin: 10px auto; border: 1px solid #ccc; overflow-y: scroll; padding: 5px; }
+        #moveList { width: 400px; height: 100px; margin: 10px auto; border: 1px solid #ccc; overflow-y: scroll; padding: 5px; background: #f9f9f9; }
     </style>
 </head>
 <body>
     <div id="board"></div>
     <div class="controls">
         <input type="file" id="fileInput" accept=".pgn">
-        <div id="moveList">Moves will appear here...</div>
+        <div id="moveList">Load a file to see moves...</div>
         <button onclick="prevMove()">Back</button>
         <button onclick="nextMove()">Next</button>
     </div>
 
     <script>
-        var config = {
+        var board = Chessboard('board', {
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
             position: 'start'
-        };
-        var board = Chessboard('board', config);
+        });
         var game = new Chess();
-        var moveHistory = [];
-        var currentMove = 0;
+        var moveIndex = -1; // Start before the first move
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 game.reset();
                 game.load_pgn(e.target.result);
-                moveHistory = game.history();
-                currentMove = 0;
+                moveIndex = -1;
                 board.start();
-                document.getElementById('moveList').innerText = moveHistory.join(", ");
+                updateMoveList();
             };
             reader.readAsText(e.target.files[0]);
         });
 
+        function updateMoveList() {
+            var history = game.history({verbose: true});
+            var display = "";
+            for (var i = 0; i < history.length; i++) {
+                var moveNum = (i % 2 === 0) ? (Math.floor(i / 2) + 1) + ". " : "";
+                var style = (i === moveIndex) ? "font-weight:bold; color:red;" : "";
+                display += "<span style='" + style + "'>" + moveNum + history[i].san + " </span>";
+            }
+            document.getElementById('moveList').innerHTML = display || "No moves loaded.";
+        }
+
         function nextMove() {
-            if (currentMove < moveHistory.length) {
-                game.move(moveHistory[currentMove]);
+            var history = game.history();
+            if (moveIndex < history.length - 1) {
+                moveIndex++;
+                game.reset();
+                for (var i = 0; i <= moveIndex; i++) { game.move(history[i]); }
                 board.position(game.fen());
-                currentMove++;
+                updateMoveList();
             }
         }
 
         function prevMove() {
-            if (currentMove > 0) {
-                game.undo();
-                board.position(game.fen());
-                currentMove--;
+            if (moveIndex >= 0) {
+                moveIndex--;
+                game.reset();
+                for (var i = 0; i <= moveIndex; i++) { game.move(history[i]); } // Corrected loop
+                board.position(moveIndex === -1 ? 'start' : game.fen());
+                updateMoveList();
             }
         }
     </script>
