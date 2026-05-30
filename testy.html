@@ -139,6 +139,12 @@ function goTo(event, url) {
     window.location.href = url;
 }
 
+// Strips the comma so "Smith, John" becomes "Smith John" for filename matching
+function getPhotoPath(name) {
+    const cleanName = name.replace(',', '');
+    return `photos/${cleanName}.jpg`;
+}
+
 let allMatchesCache = null;
 let currentMatches = [];
 let currentPlayer = "";
@@ -155,7 +161,7 @@ async function showProfile(name, reg, quick, blitz) {
     const modal = document.getElementById('profile-modal');
     
     document.getElementById('modal-player-name').innerHTML = `
-        <img src="photos/${name}.jpg" onerror="this.style.display='none'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; margin-right:15px;">
+        <img src="${getPhotoPath(name)}" onerror="this.style.display='none'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; margin-right:15px;">
         ${name}`;
         
     document.getElementById('modal-ratings').innerText = `Reg: ${reg} | Quick: ${quick} | Blitz: ${blitz}`;
@@ -235,7 +241,7 @@ async function loadPlayers() {
                 return `
                 <div class="player-row" onclick="showProfile('${p[0]}', '${p[1]}', '${p[2]}', '${p[3]}')" style="cursor:pointer;">
                     <div class="player-name">
-                        <img src="photos/${p[0]}.jpg" onerror="this.style.display='none'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:15px;">
+                        <img src="${getPhotoPath(p[0])}" onerror="this.style.display='none'" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:15px;">
                         ${p[0]}
                     </div>
                     ${stats.length ? `<div class="player-stats">${stats.join(' | ')}</div>` : ''}
