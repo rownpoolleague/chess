@@ -141,8 +141,9 @@
 <body>
 <div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100; padding:20px; overflow-y:auto;">
   <div style="background:#111; padding:20px; border-radius:8px; border:1px solid #333;">
-    <button onclick="document.getElementById('profile-modal').style.display='none'">Close</button>
+    <button onclick="closeModal()">Close</button>
     <h2 id="modal-player-name" style="color:var(--accent)"></h2>
+    <div id="modal-ratings" style="color:#aaa; margin-bottom:10px;"></div>
     <div id="modal-stats"></div>
   </div>
 </div>
