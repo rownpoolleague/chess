@@ -39,7 +39,7 @@
         <div><select id="p2-select" onchange="updateEloField('p2')"><option value="">P2</option></select><input type="number" id="p2elo" placeholder="ELO" readonly></div>
     </div>
     
-    <select id="opening">
+    <select id="opening" onchange="updateVariations()">
         <option value="" disabled selected>Choose Opening...</option>
         <option value="A00: Uncommon / Flank">Flank Openings (A00)</option>
         <option value="B01: Scandinavian Defense">Scandinavian Defense (B01)</option>
@@ -55,18 +55,37 @@
         <option value="E00: Indian Defenses">Indian Defenses (E00)</option>
     </select>
 
+    <select id="variation" disabled>
+        <option value="">Choose Variation...</option>
+    </select>
+
     <select id="result">
         <option value="" disabled selected>Result...</option>
         <option value="1-0">1 - 0</option>
-         <option value="0.5-0.5">½ - ½</option>
+        <option value="0.5-0.5">½ - ½</option>
         <option value="0-1">0 - 1</option>
-       
     </select>
     <button class="action-btn" onclick="submitMatch()">SUBMIT MATCH</button>
 </div>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4FYG8bdsYf1k4YCTZUZ00Rg9vR3MhN04asHhtWpPK3aWAfarD2rfSbWz4dlAstRRI3Q/exec';
+    
+    const variationsData = {
+        "A00: Uncommon / Flank": ["Standard"],
+        "B01: Scandinavian Defense": ["Modern Variation", "Classical Variation"],
+        "B10: Caro-Kann Defense": ["Advance Variation", "Classical Variation", "Exchange Variation"],
+        "B20: Sicilian Defense": ["Najdorf", "Dragon", "Sveshnikov", "Classical"],
+        "C00: French Defense": ["Winawer", "Classical", "Advance", "Tarrasch"],
+        "C41: Philidor Defense": ["Standard"],
+        "C50: Italian Game / Giuoco Piano": ["Giuoco Piano", "Evans Gambit", "Two Knights"],
+        "C60: Ruy Lopez (Spanish)": ["Berlin Defense", "Morphy Defense"],
+        "D00: Queen's Pawn Game": ["Standard"],
+        "D02: London System": ["Standard"],
+        "D06: Queen's Gambit": ["Accepted", "Declined"],
+        "E00: Indian Defenses": ["King's Indian", "Nimzo-Indian"]
+    };
+
     let allPlayers = [];
 
     async function loadPlayers() {
@@ -85,6 +104,14 @@
         document.getElementById('p2-select').innerHTML = opt;
     }
 
+    function updateVariations() {
+        const opening = document.getElementById('opening').value;
+        const varSelect = document.getElementById('variation');
+        varSelect.innerHTML = '<option value="">Choose Variation...</option>' + 
+                              variationsData[opening].map(v => `<option value="${v}">${v}</option>`).join('');
+        varSelect.disabled = false;
+    }
+
     function updateEloField(p) {
         const s = document.getElementById(p + '-select');
         document.getElementById(p + 'elo').value = s.options[s.selectedIndex]?.getAttribute('data-elo') || '';
@@ -96,10 +123,18 @@
         document.getElementById('p1elo').value = "";
         document.getElementById('p2elo').value = "";
         document.getElementById('opening').selectedIndex = 0;
+        document.getElementById('variation').innerHTML = '<option value="">Choose Variation...</option>';
+        document.getElementById('variation').disabled = true;
         document.getElementById('result').selectedIndex = 0;
     }
 
     async function submitMatch() {
+        const openingVal = document.getElementById('opening').value;
+        const variationVal = document.getElementById('variation').value;
+        
+        // Combines them into one string so Apps Script doesn't need to change
+        const fullOpening = variationVal ? `${openingVal} - ${variationVal}` : openingVal;
+
         const d = { 
             action: 'addMatch', 
             p1: document.getElementById('p1-select').value, 
@@ -108,7 +143,7 @@
             p2elo: document.getElementById('p2elo').value, 
             white: document.getElementById('p1-select').value, 
             black: document.getElementById('p2-select').value, 
-            opening: document.getElementById('opening').value, 
+            opening: fullOpening, 
             result: document.getElementById('result').value, 
             format: document.getElementById('format').value 
         };
