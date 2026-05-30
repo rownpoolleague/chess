@@ -7,33 +7,38 @@
     <title>Tournament Viewer</title>
 
     <style>
-        body {
+        /* This combination disables pull-to-refresh and bounce scrolling */
+        html, body {
             background: #000;
             color: #eee;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 10px;
-            /* Prevents bounce scrolling and ensures full height fit */
+            padding: 20px;
             height: 100dvh;
-            overflow-y: auto;
+            overflow: hidden; /* Locks the page from moving */
+        }
+
+        body {
+            overflow-y: auto; /* Allows internal content to scroll */
+            overscroll-behavior-y: none; /* Specifically kills pull-to-refresh */
         }
 
         h1 {
             text-align: center;
-            margin: 10px 0;
-            font-size: 28px;
+            margin: 10px 0 20px 0;
+            font-size: 32px;
             font-weight: bold;
         }
 
         #content {
             width: 100%;
-            margin: 0 auto;
-            padding-bottom: 20px;
+            margin: auto;
+            padding-bottom: 40px;
         }
 
         .round {
             background: #111;
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             border: 1px solid #333;
         }
@@ -41,40 +46,33 @@
         .round h2 {
             margin-top: 0;
             color: #1e90ff;
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 25px;
             text-align: center;
         }
 
-        /* SECTION HEADERS */
         .section-title {
             text-align: center;
-            font-size: 20px;
+            font-size: 22px;
             margin: 25px 0 15px 0;
             color: #f7d14f;
             font-weight: bold;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
         }
 
-        /* PAIRINGS */
         .pairing {
             text-align: center;
-            padding: 15px 0;
+            padding: 18px 0;
             border-bottom: 1px solid #222;
-            font-size: 19px; /* Larger text for phones */
-        }
-
-        /* SCORES / RESULTS */
-        .scores {
-            margin-top: 5px;
+            font-size: 20px;
         }
 
         .score-row {
             text-align: center;
             padding: 12px 0;
             border-bottom: 1px solid #222;
-            font-size: 19px; /* Larger text for phones */
+            font-size: 20px;
         }
 
         .score-row:last-child {
@@ -87,17 +85,16 @@
 
 <h1>Tournament Viewer</h1>
 
-<div id="content">Loading…</div>
+<div id="content">Loading tournament data…</div>
 
 <script>
 async function loadTournamentData() {
     try {
         const resp = await fetch(APP_CONFIG.APPSCRIPT_URL + "?action=tournament");
+        if (!resp.ok) throw new Error("Server error");
+        
         const data = await resp.json();
-
         const rows = data.rounds;
-
-        // ⭐ Only show the last row
         const last = rows[rows.length - 1];
 
         const rounds = [{
@@ -106,16 +103,18 @@ async function loadTournamentData() {
             scores: JSON.parse(last.black)
         }];
 
+        // Only render/clear if fetch succeeds. 
+        // This keeps the screen active if the connection fails.
         renderTournament(rounds);
 
     } catch (err) {
-        document.getElementById("content").innerHTML = "Failed to load tournament data.";
-        console.error(err);
+        console.error("Fetch failed, keeping current view:", err);
     }
 }
 
 function renderTournament(rounds) {
     const container = document.getElementById("content");
+    // Only clear once we have confirmed new data
     container.innerHTML = "";
 
     rounds.forEach(r => {
@@ -124,7 +123,6 @@ function renderTournament(rounds) {
 
         div.innerHTML = `<h2>Round ${r.round}</h2>`;
 
-        // ⭐ PAIRINGS SECTION
         div.innerHTML += `<div class="section-title">Pairings</div>`;
         r.pairings.forEach(p => {
             div.innerHTML += `
@@ -135,15 +133,12 @@ function renderTournament(rounds) {
             `;
         });
 
-        // ⭐ RESULTS SECTION
         div.innerHTML += `<div class="section-title">Standings</div>`;
         div.innerHTML += `<div class="scores"></div>`;
         const scoreBox = div.querySelector(".scores");
 
-        // ⭐ Sort standings by score DESC
         const sortedStandings = [...r.scores].sort((a, b) => b.score - a.score);
 
-        // ⭐ Render standings
         sortedStandings.forEach((s, i) => {
             scoreBox.innerHTML += `
                 <div class="score-row">
@@ -156,9 +151,9 @@ function renderTournament(rounds) {
     });
 }
 
+// Start polling
 loadTournamentData();
-setInterval(loadTournamentData, 5000);
-
+setInterval(loadTournamentData, 10000); 
 </script>
 
 </body>
