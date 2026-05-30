@@ -16,65 +16,61 @@
 
         h1 {
             text-align: center;
-            margin: 30px 0;
-            font-size: 48px;
-            font-weight: 700;
-            letter-spacing: -1px;
+            margin: 20px 0;
+            font-size: 32px;
+            font-weight: bold;
         }
 
         #content {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             margin: auto;
         }
 
         .round {
             background: #111;
-            padding: 30px;
-            margin-bottom: 30px;
-            border-radius: 16px;
-            border: 1px solid #222;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
         }
 
         .round h2 {
             margin-top: 0;
             color: #1e90ff;
-            font-size: 32px;
+            font-size: 28px;
             margin-bottom: 25px;
             text-align: center;
         }
 
         /* SECTION HEADERS */
         .section-title {
-            font-size: 24px;
-            margin: 30px 0 15px 0;
+            text-align: center;
+            font-size: 22px;
+            margin: 20px 0;
             color: #f7d14f;
-            font-weight: 600;
-            border-bottom: 1px solid #333;
-            padding-bottom: 8px;
+            font-weight: bold;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
         }
 
         /* PAIRINGS */
         .pairing {
-            padding: 15px 0;
+            text-align: center;
+            padding: 12px 0;
             border-bottom: 1px solid #222;
-            font-size: 20px;
-        }
-
-        .pairing:last-child {
-            border-bottom: none;
+            font-size: 18px;
         }
 
         /* SCORES / RESULTS */
         .scores {
-            margin-top: 15px;
-            padding: 10px;
-            font-size: 20px;
+            margin-top: 10px;
         }
 
         .score-row {
-            padding: 10px 0;
+            text-align: center;
+            padding: 8px 0;
             border-bottom: 1px solid #222;
+            font-size: 18px;
         }
 
         .score-row:last-child {
@@ -130,7 +126,7 @@ function renderTournament(rounds) {
             div.innerHTML += `
                 <div class="pairing">
                     <strong>${p.white}</strong> vs <strong>${p.black}</strong>
-                    <br><small style="color:#888;">Result: ${p.result === null ? "—" : p.result}</small>
+                    <br><span style="color:#888; font-size: 0.9em;">Result: ${p.result === null ? "—" : p.result}</span>
                 </div>
             `;
         });
