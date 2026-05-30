@@ -3,30 +3,30 @@
 <head>
     <script src="asfa.js"></script>
     <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tournament Viewer</title>
 
     <style>
-        /* This combination disables pull-to-refresh and bounce scrolling */
         html {
-    background-color: #000; /* Fills the notch/status bar area */
-    margin: 0;
-    padding: 0;
-    height: 100dvh;
-}
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
 
-body {
-    background-color: #000;
-    color: #eee;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    padding: 20px;
-    height: 100dvh;
-    overflow-y: auto; /* Allows content to scroll */
-    overscroll-behavior-y: none; /* Kills pull-to-refresh */
-    /* Ensures content starts below the status bar/notch */
-    padding-top: max(20px, env(safe-area-inset-top)); 
-}
+        body {
+            background-color: #000;
+            color: #eee;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            overscroll-behavior-y: none;
+            /* Removed padding-top safe-area calculation to stop the gap */
+            padding-top: 20px; 
+        }
 
         h1 {
             text-align: center;
@@ -108,8 +108,6 @@ async function loadTournamentData() {
             scores: JSON.parse(last.black)
         }];
 
-        // Only render/clear if fetch succeeds. 
-        // This keeps the screen active if the connection fails.
         renderTournament(rounds);
 
     } catch (err) {
@@ -119,7 +117,6 @@ async function loadTournamentData() {
 
 function renderTournament(rounds) {
     const container = document.getElementById("content");
-    // Only clear once we have confirmed new data
     container.innerHTML = "";
 
     rounds.forEach(r => {
@@ -156,7 +153,6 @@ function renderTournament(rounds) {
     });
 }
 
-// Start polling
 loadTournamentData();
 setInterval(loadTournamentData, 10000); 
 </script>
