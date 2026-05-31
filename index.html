@@ -91,24 +91,24 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-       Notification.requestPermission().then((permission) => {
-  alert("Permission: " + permission); 
-  if (permission === 'granted') {
-    getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY_HERE' })
-      .then((token) => {
-        alert("Token generated! Sending...");
-        fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
-          method: "POST",
-          body: JSON.stringify({ action: "saveToken", token: token })
-        })
-        .then(response => response.json())
-        .then(data => alert("Server response: " + JSON.stringify(data)))
-        .catch(err => alert("Fetch error: " + err));
-      }).catch((err) => {
-        alert("Token error: " + err);
-      });
-  }
-});
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then((reg) => console.log('SW Registered'))
+            .catch((err) => alert("SW Registration failed: " + err));
+        }
+
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' })
+                    .then((token) => {
+                        fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
+                            method: "POST",
+                            body: JSON.stringify({ action: "saveToken", token: token })
+                        }).catch((err) => alert("Fetch error: " + err));
+                    }).catch((err) => alert("Token error: " + err));
+            }
+        });
     </script>
 
     <script>
