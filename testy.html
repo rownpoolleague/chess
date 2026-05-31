@@ -31,27 +31,33 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
         <footer><img src="iconking.png" alt="Club Logo" class="footer-logo"></footer>
     </div>
     <script>
-    async function broadcast() {
-        const title = document.getElementById("title").value;
-        const body = document.getElementById("body").value;
-        const url = document.getElementById("url").value;
-        if(!title || !body) { alert("Title and Message required"); return; }
-
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbwgE4v2DIXnBLWK0ITWssTtwTR-Qfb_hxCVc3uXExJwr3lmgQe7zg2hmlIXCqBZHKI/exec";
-        const params = new URLSearchParams({ action: "sendPush", title, body, url });
-
-        try {
-            // Simple GET request bypasses CORS preflight entirely
-            const resp = await fetch(scriptUrl + "?" + params.toString(), {
-                method: "GET"
-            });
-            const result = await resp.json();
-            alert("Broadcast status: " + JSON.stringify(result));
-        } catch (err) {
-            console.error(err);
-            alert("Error occurred. Check console.");
+        // SERVICE WORKER REGISTRATION
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Registered:', reg))
+                .catch(err => console.error('Service Worker Registration Failed:', err));
         }
-    }
+
+        async function broadcast() {
+            const title = document.getElementById("title").value;
+            const body = document.getElementById("body").value;
+            const url = document.getElementById("url").value;
+            if(!title || !body) { alert("Title and Message required"); return; }
+
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbwgE4v2DIXnBLWK0ITWssTtwTR-Qfb_hxCVc3uXExJwr3lmgQe7zg2hmlIXCqBZHKI/exec";
+            const params = new URLSearchParams({ action: "sendPush", title, body, url });
+
+            try {
+                const resp = await fetch(scriptUrl + "?" + params.toString(), {
+                    method: "GET"
+                });
+                const result = await resp.json();
+                alert("Broadcast status: " + JSON.stringify(result));
+            } catch (err) {
+                console.error(err);
+                alert("Error occurred. Check console.");
+            }
+        }
     </script>
 </body>
 </html>
