@@ -3,51 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess PGN Viewer</title>
-    
-    <!-- Dependencies -->
-    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.base.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/chessground@8.0.0/assets/chessground.brown.min.css">
-    
+    <title>PGN File Viewer</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        #board { width: 360px; height: 360px; margin-bottom: 20px; }
-        .controls { margin-bottom: 20px; }
+        body { font-family: sans-serif; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .viewer-container { 
+            width: 100%; 
+            max-width: 600px; 
+            aspect-ratio: 1.5; 
+            border: 1px solid #ccc; 
+            margin-top: 20px;
+            background: #f9f9f9;
+        }
+        iframe { width: 100%; height: 100%; border: 0; }
+        .upload-section { margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <input type="file" id="pgnInput" accept=".pgn,.txt">
+    <div class="upload-section">
+        <label for="pgnFile">Select PGN File:</label>
+        <input type="file" id="pgnFile" accept=".pgn,.txt">
     </div>
 
-    <div id="board" class="cg-board"></div>
-    <div id="moveLog"></div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-    <script src="https://unpkg.com/chessground@8.0.0/dist/chessground.min.js"></script>
+    <div class="viewer-container">
+        <iframe name="caissa_iframe" id="caissa_iframe"></iframe>
+        <form id="caissa_form" method="post" action="https://caissa.com/bin/gameview" target="caissa_iframe">
+            <input type="hidden" name="edat" id="pgn_data">
+        </form>
+    </div>
 
     <script>
-        const game = new Chess();
-        const ground = Chessground(document.getElementById('board'), {
-            viewOnly: true,
-            coordinates: false
-        });
-
-        document.getElementById('pgnInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        document.getElementById('pgnFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const pgn = e.target.result;
-                game.loadPgn(pgn);
+            reader.onload = function(event) {
+                // Get the raw PGN text
+                const pgnContent = event.target.result;
                 
-                // Update board to current position
-                ground.set({ fen: game.fen() });
+                // Inject into the hidden form field
+                document.getElementById('pgn_data').value = pgnContent;
                 
-                // Display Move History
-                document.getElementById('moveLog').innerText = game.history().join(', ');
+                // Submit the form to the iframe
+                document.getElementById('caissa_form').submit();
             };
             reader.readAsText(file);
         });
