@@ -69,7 +69,6 @@
                 <a class="menu-button" href="viewer.html" onclick="goTo(event, this.href)">Load PGN</a>
                 <a class="menu-button" href="admin.html" onclick="goTo(event, this.href, true)">Admin</a>
                 <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
-                <!-- Notification Button added here -->
                 <button class="menu-button" onclick="enableNotifications()">Enable Notifications</button>
             </div>
         </div>
@@ -95,12 +94,16 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-        // Define the function globally so the button can find it
         window.enableNotifications = async () => {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 try {
-                    const token = await getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' });
+                    const swRegistration = await navigator.serviceWorker.getRegistration('/chess/sw.js');
+                    const token = await getToken(messaging, { 
+                        vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y',
+                        serviceWorkerRegistration: swRegistration
+                    });
+                    
                     await fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
                         method: "POST",
                         body: JSON.stringify({ action: "saveToken", token: token })
