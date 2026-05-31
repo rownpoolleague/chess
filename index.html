@@ -119,7 +119,7 @@
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
             try {
-                const resp = await fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
