@@ -56,38 +56,30 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
     </div>
 
     <script>
-      
-
         async function broadcast() {
-    const title = document.getElementById("title").value;
-    const body = document.getElementById("body").value;
-    const url = document.getElementById("url").value;
-    
-    if(!title || !body) { alert("Title and Message required"); return; }
+            const title = document.getElementById("title").value;
+            const body = document.getElementById("body").value;
+            const url = document.getElementById("url").value;
+            
+            if(!title || !body) { alert("Title and Message required"); return; }
 
-    try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbyugU4ASq7GcibDyG_5JK_kvW9FKgWJ2lgMtEMWwx8fE2QSRP_DYkd1qAfoHPkQiuM/exec", {
-    method: "POST",
-    mode: "cors",
-    redirect: "follow",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "sendPush", title, body, url })
-});
-const result = await resp.json();
-console.log(result);
-        
-        // Read as text first to see what is actually coming back
-        const rawText = await resp.text();
-        console.log("Raw response from server:", rawText);
-        
-        // Now try to parse it
-        const result = JSON.parse(rawText);
-        alert("Broadcast status: " + result.status);
-    } catch (err) {
-        console.error("Fetch Error details:", err);
-        alert("Error occurred. Check console for raw response.");
-    }
-}
+            try {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbyN-fD6ezWGfVoM2jabnFzFiz6QWBg2gEBrMyPYZxrxjb2vv5j2zlRcg_zn0RYVsD0z/exec", {
+                    method: "POST",
+                    mode: "cors",
+                    redirect: "follow",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "sendPush", title, body, url })
+                });
+                
+                const result = await resp.json();
+                console.log("Success:", result);
+                alert("Broadcast status: " + (result.status || result.error || "Completed"));
+            } catch (err) {
+                console.error("Fetch Error details:", err);
+                alert("Error occurred. Check console.");
+            }
+        }
     </script>
 </body>
 </html>
