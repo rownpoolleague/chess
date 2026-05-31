@@ -4,39 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Club Main Menu</title>
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-
 <style>
-* { box-sizing: border-box; }
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #000000;
-    /* Removed: display: flex; flex-direction: column; min-height: 100vh; */
-}
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; padding: 0; font-family: Arial, sans-serif;
+        background-color: #000000; color: white;
+    }
 
-.overlay {
-    flex: 1; display: flex; flex-direction: column;
-    justify-content: center; padding: 20px 10px;
-}
-h1 { text-align: center; color: white; margin-top: 0; margin-bottom: 20px; font-size: 32px; }
-.menu-container {
-    max-width: 500px; margin: 0 auto; width: 100%;
-    display: flex; flex-direction: column; gap: 20px;
-}
-.menu-button {
-    display: block; margin-left: auto; margin-right: auto;
-    text-align: center; padding: 4px; background: #1e90ff;
-    color: white; text-decoration: none; font-size: 24px;
-    border-radius: 8px; font-weight: bold; height: 36px;
-    line-height: 28px; width: 250px; cursor: pointer;
-}
-footer { text-align: center; padding: 10px 20px; }
-.footer-logo { max-width: 200px; max-height: 15dvh; height: auto; width: auto; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .overlay {
+        display: flex; flex-direction: column;
+        justify-content: center; padding: 20px 10px;
+    }
+    h1 { text-align: center; margin-bottom: 20px; font-size: 32px; }
+
+    /* The new container for the links */
+    .link-card {
+        max-width: 500px;
+        margin: 0 auto;
+        width: 90%;
+        background: #111;
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .menu-container {
+        display: flex; flex-direction: column; gap: 15px;
+    }
+
+    .menu-button {
+        display: block; text-align: center; padding: 10px; 
+        background: #1e90ff; color: white; text-decoration: none; 
+        font-size: 20px; border-radius: 8px; font-weight: bold; 
+        width: 100%; cursor: pointer; transition: background 0.2s;
+    }
+    .menu-button:hover { background: #187bcd; }
+
+    footer { text-align: center; padding: 20px; }
+    .footer-logo { max-width: 150px; opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -46,13 +52,13 @@ footer { text-align: center; padding: 10px 20px; }
             <h2 style="color:white; margin-top:0;">Admin Login</h2>
             <input id="adminPass" type="password" placeholder="Password" style="width:100%; padding:10px; font-size:18px; margin-bottom:20px;">
             <button onclick="submitAdminPassword()" style="width:100%; padding:10px; font-size:20px; background:#1e90ff; color:white; border:none; border-radius:6px;">Enter</button>
-            <div id="adminSpinner" style="display:none; margin:15px auto 0 auto; width:40px; height:40px; border:4px solid #1e90ff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
         </div>
     </div>
 
-    <div class="form-wrapper">
-        <div class="overlay">
-            <h1>Main Menu</h1>
+    <div class="overlay">
+        <h1>Main Menu</h1>
+        
+        <div class="link-card">
             <div class="menu-container">
                 <a class="menu-button" href="calendar.html" onclick="goTo(event, this.href)">Calendar</a>
                 <a class="menu-button" href="members.html" onclick="goTo(event, this.href)">SSCC Members</a>
@@ -61,13 +67,14 @@ footer { text-align: center; padding: 10px 20px; }
                 <a class="menu-button" href="submit.html" onclick="goTo(event, this.href)">Submit a Club Game</a>
                 <a class="menu-button" href="viewer.html" onclick="goTo(event, this.href)">Load PGN</a>
                 <a class="menu-button" href="admin.html" onclick="goTo(event, this.href, true)">Admin</a>
-                                <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
+                <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
             </div>
         </div>
-        <footer>
-            <img src="iconking.png" alt="Club Logo" class="footer-logo">
-        </footer>
     </div>
+
+    <footer>
+        <img src="iconking.png" alt="Club Logo" class="footer-logo">
+    </footer>
 
     <script>
         function goTo(event, url, isAdmin = false) {
@@ -81,35 +88,20 @@ footer { text-align: center; padding: 10px 20px; }
             window.location.href = url;
         }
 
-                async function submitAdminPassword() {
+        async function submitAdminPassword() {
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
-            const spinner = document.getElementById("adminSpinner");
-            spinner.style.display = "block";
             try {
                 const resp = await fetch("https://script.google.com/macros/s/AKfycbyTCGujLrR6l5b4u6jRksr3AkMxvwnGf5HFvzBnzsMqTJGmLUCF35h_bq2iIgv7PXFt/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
                 const data = await resp.json();
-                
-                if (!data.ok) { 
-                    alert("Incorrect password."); 
-                    spinner.style.display = "none";
-                    return; 
-                }
-
-                // --- THIS IS THE PART YOU WERE MISSING ---
+                if (!data.ok) { alert("Incorrect password."); return; }
                 sessionStorage.setItem("adminAuth", "ok");
-                // -----------------------------------------
-
                 window.location.href = document.getElementById("adminModal").dataset.url;
-            } catch (err) {
-                console.error(err);
-                spinner.style.display = "none";
-            }
+            } catch (err) { console.error(err); }
         }
-
     </script>
 </body>
 </html>
