@@ -68,7 +68,7 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
     try {
         const resp = await fetch("https://script.google.com/macros/s/AKfycbyugU4ASq7GcibDyG_5JK_kvW9FKgWJ2lgMtEMWwx8fE2QSRP_DYkd1qAfoHPkQiuM/exec", {
             method: "POST",
-            mode: 'cors',
+            mode: "cors",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "sendPush", title, body, url })
         });
