@@ -59,19 +59,31 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
       
 
         async function broadcast() {
-            const title = document.getElementById("title").value;
-            const body = document.getElementById("body").value;
-            const url = document.getElementById("url").value;
-            
-            if(!title || !body) { alert("Title and Message required"); return; }
+    const title = document.getElementById("title").value;
+    const body = document.getElementById("body").value;
+    const url = document.getElementById("url").value;
+    
+    if(!title || !body) { alert("Title and Message required"); return; }
 
-            const resp = await fetch("https://script.google.com/macros/s/AKfycbx-UcqOFIMUyrqBFXE0sRjdKVpgOZNrzUOQTnX238CmabF2gJaS4Luzud4o0PAo6wlJ/exec", {
-                method: "POST",
-                body: JSON.stringify({ action: "sendPush", title, body, url })
-            });
-            const result = await resp.json();
-            alert("Broadcast status: " + result.status);
-        }
+    try {
+        const resp = await fetch("YOUR_DEPLOYED_EXEC_URL", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "sendPush", title, body, url })
+        });
+        
+        // Read as text first to see what is actually coming back
+        const rawText = await resp.text();
+        console.log("Raw response from server:", rawText);
+        
+        // Now try to parse it
+        const result = JSON.parse(rawText);
+        alert("Broadcast status: " + result.status);
+    } catch (err) {
+        console.error("Fetch Error details:", err);
+        alert("Error occurred. Check console for raw response.");
+    }
+}
     </script>
 </body>
 </html>
