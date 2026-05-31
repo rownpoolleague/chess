@@ -1,66 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGN File Viewer - Dark Theme</title>
-    <style>
-        /* This styles the entire page background */
-        body { 
-            font-family: sans-serif; 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            background-color: #1a1a1a; /* Dark background */
-            color: #ffffff; /* Light text */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Club Main Menu</title>
+<link rel="manifest" href="manifest.json">
 
-        .upload-section { margin-bottom: 20px; }
-
-        /* This styles the area directly around the iframe */
-        .viewer-container { 
-            width: 100%; 
-            max-width: 400px; 
-            aspect-ratio: 0.575; 
-            border: 2px solid #444; /* Darker border */
-            background-color: #000000; /* Black background for the container */
-            padding: 5px; /* Creates a small frame effect */
-        }
-
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: 0; 
-        }
-    </style>
+<style>
+* { box-sizing: border-box; }
+html, body {
+    margin: 0; padding: 0; width: 100%; height: 100dvh;
+    background-color: #000; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.form-wrapper {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh; 
+    background-color: #000; border: 4px solid #1e90ff; border-radius: 12px;
+    background-clip: padding-box; display: flex; flex-direction: column;
+    padding: 10px;
+}
+.overlay { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
+h1 { text-align: center; color: white; margin-top: 0; margin-bottom: 20px; font-size: 28px; }
+.menu-container { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.menu-button {
+    display: block; margin: 0 auto; text-align: center; padding: 8px; 
+    background: #1e90ff; color: white; text-decoration: none; 
+    font-size: 18px; border-radius: 8px; font-weight: bold; width: 250px; cursor: pointer; border: none;
+}
+input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #333; }
+footer { text-align: center; padding: 10px; margin-top: auto; }
+.footer-logo { max-width: 150px; height: auto; }
+</style>
 </head>
+
 <body>
-
-    <div class="upload-section">
-        <label for="pgnFile">Select PGN File:</label>
-        <input type="file" id="pgnFile" accept=".pgn,.txt">
-    </div>
-
-    <div class="viewer-container">
-        <iframe name="cwvif_tfvswf" style='width:100%;height:100%;border:0'></iframe>
-        <form id="cwvfm_tfvswf" method="post" action='https://caissa.com/bin/gameview' target="cwvif_tfvswf">
-            <input id="cwvip_tfvswf" name="edat" type="hidden">
-        </form>
+    <div class="form-wrapper">
+        <div class="overlay">
+            <h1>Tournament Menu</h1>
+            <div class="menu-container">                
+                <a class="menu-button" href="addplayer.html">Add Player</a>
+                <a class="menu-button" href="tournament.html">Start Tournament</a>
+                <a class="menu-button" href="index.html">Main Menu</a>
+                
+                <hr style="width:100%; border:0; border-top:1px solid #333; margin: 20px 0;">
+                
+                <input id="title" placeholder="Notification Title">
+                <input id="body" placeholder="Notification Message">
+                <input id="url" placeholder="Page URL (e.g., /chess/calendar.html)">
+                <button class="menu-button" onclick="broadcast()">Send Broadcast</button>
+            </div>
+        </div>
+        <footer>
+            <img src="iconking.png" alt="Club Logo" class="footer-logo">
+        </footer>
     </div>
 
     <script>
-        document.getElementById('pgnFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+      
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('cwvip_tfvswf').value = event.target.result;
-                document.getElementById('cwvfm_tfvswf').submit();
-            };
-            reader.readAsText(file);
-        });
+        async function broadcast() {
+            const title = document.getElementById("title").value;
+            const body = document.getElementById("body").value;
+            const url = document.getElementById("url").value;
+            
+            if(!title || !body) { alert("Title and Message required"); return; }
+
+            const resp = await fetch("https://script.google.com/macros/s/AKfycbxCQm3SsxBsnEcB9KMOBk5zVtb1mDkAWRd9SAV8FKcm2zM7F6cxeFP0jTjzclDHo750/exec", {
+                method: "POST",
+                body: JSON.stringify({ action: "sendPush", title, body, url })
+            });
+            const result = await resp.json();
+            alert("Broadcast status: " + result.status);
+        }
     </script>
 </body>
 </html>
