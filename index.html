@@ -91,24 +91,29 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-            .then((reg) => console.log('SW Registered'))
-            .catch((err) => alert("SW Registration failed: " + err));
-        }
-
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' })
-                    .then((token) => {
-                        fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
-                            method: "POST",
-                            body: JSON.stringify({ action: "saveToken", token: token })
-                        }).catch((err) => alert("Fetch error: " + err));
-                    }).catch((err) => alert("Token error: " + err));
+// Register first, then handle permissions
+navigator.serviceWorker.register('/sw.js')
+  .then((registration) => {
+    console.log('Service Worker ready');
+    
+    // Only set up the button/trigger AFTER the worker is ready
+    window.enableNotifications = async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            try {
+                const token = await getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' });
+                await fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
+                    method: "POST",
+                    body: JSON.stringify({ action: "saveToken", token: token })
+                });
+                alert("Success!");
+            } catch (err) {
+                alert("Token error: " + err);
             }
-        });
+        }
+    };
+  })
+  .catch((err) => alert("SW Registration failed: " + err));
     </script>
 
     <script>
