@@ -4,81 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Club Main Menu</title>
-<link rel="manifest" href="manifest.json">
-
 <style>
 * { box-sizing: border-box; }
-html, body {
-    margin: 0; padding: 0; width: 100%; height: 100dvh;
-    background-color: #000; overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-.form-wrapper {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh; 
-    background-color: #000; border: 4px solid #1e90ff; border-radius: 12px;
-    background-clip: padding-box; display: flex; flex-direction: column;
-    padding: 10px;
-}
+html, body { margin: 0; padding: 0; width: 100%; height: 100dvh; background-color: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.form-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh; background-color: #000; border: 4px solid #1e90ff; border-radius: 12px; background-clip: padding-box; display: flex; flex-direction: column; padding: 10px; }
 .overlay { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
 h1 { text-align: center; color: white; margin-top: 0; margin-bottom: 20px; font-size: 28px; }
 .menu-container { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.menu-button {
-    display: block; margin: 0 auto; text-align: center; padding: 8px; 
-    background: #1e90ff; color: white; text-decoration: none; 
-    font-size: 18px; border-radius: 8px; font-weight: bold; width: 250px; cursor: pointer; border: none;
-}
+.menu-button { display: block; margin: 0 auto; text-align: center; padding: 8px; background: #1e90ff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; font-weight: bold; width: 250px; cursor: pointer; border: none; }
 input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #333; }
 footer { text-align: center; padding: 10px; margin-top: auto; }
 .footer-logo { max-width: 150px; height: auto; }
 </style>
 </head>
-
 <body>
     <div class="form-wrapper">
         <div class="overlay">
             <h1>Tournament Menu</h1>
-            <div class="menu-container">                
-                <a class="menu-button" href="addplayer.html">Add Player</a>
-                <a class="menu-button" href="tournament.html">Start Tournament</a>
-                <a class="menu-button" href="index.html">Main Menu</a>
-                
-                <hr style="width:100%; border:0; border-top:1px solid #333; margin: 20px 0;">
-                
+            <div class="menu-container">
                 <input id="title" placeholder="Notification Title">
                 <input id="body" placeholder="Notification Message">
-                <input id="url" placeholder="Page URL (e.g., /chess/calendar.html)">
+                <input id="url" placeholder="Page URL">
                 <button class="menu-button" onclick="broadcast()">Send Broadcast</button>
             </div>
         </div>
-        <footer>
-            <img src="iconking.png" alt="Club Logo" class="footer-logo">
-        </footer>
+        <footer><img src="iconking.png" alt="Club Logo" class="footer-logo"></footer>
     </div>
-
     <script>
-async function broadcast() {
-    const title = document.getElementById("title").value;
-    const body = document.getElementById("body").value;
-    const url = document.getElementById("url").value;
-    
-    if(!title || !body) { alert("Title and Message required"); return; }
+    async function broadcast() {
+        const title = document.getElementById("title").value;
+        const body = document.getElementById("body").value;
+        const url = document.getElementById("url").value;
+        if(!title || !body) { alert("Title and Message required"); return; }
 
-    // Build the URL with parameters
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbz76yNHSwbFF6sOPdW4aX7upC7Skr8lhattyHcLO_pGJ3tKfyuV2aUPH3M2JMIrkzI/exec";
-    const params = new URLSearchParams({ action: "sendPush", title, body, url });
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbz76yNHSwbFF6sOPdW4aX7upC7Skr8lhattyHcLO_pGJ3tKfyuV2aUPH3M2JMIrkzI/exec";
+        const params = new URLSearchParams({ action: "sendPush", title, body, url });
 
-    try {
-        const resp = await fetch(`${scriptUrl}?${params.toString()}`, {
-            method: "GET",
-            mode: "cors"
-        });
-        
-        const result = await resp.json();
-        alert("Broadcast status: " + (result.status || "Completed"));
-    } catch (err) {
-        alert("Error occurred. Check console.");
+        try {
+            // Simple GET request bypasses CORS preflight entirely
+            const resp = await fetch(scriptUrl + "?" + params.toString(), {
+                method: "GET"
+            });
+            const result = await resp.json();
+            alert("Broadcast status: " + JSON.stringify(result));
+        } catch (err) {
+            console.error(err);
+            alert("Error occurred. Check console.");
+        }
     }
-}
     </script>
 </body>
 </html>
