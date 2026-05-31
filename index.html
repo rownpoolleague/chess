@@ -38,6 +38,7 @@
             background: #1e90ff; color: white; text-decoration: none; 
             font-size: 20px; border-radius: 8px; font-weight: bold; 
             width: 100%; cursor: pointer; transition: background 0.2s;
+            border: none;
         }
         .menu-button:hover { background: #187bcd; }
 
@@ -68,6 +69,8 @@
                 <a class="menu-button" href="viewer.html" onclick="goTo(event, this.href)">Load PGN</a>
                 <a class="menu-button" href="admin.html" onclick="goTo(event, this.href, true)">Admin</a>
                 <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
+                <!-- Notification Button added here -->
+                <button class="menu-button" onclick="enableNotifications()">Enable Notifications</button>
             </div>
         </div>
     </div>
@@ -92,29 +95,28 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-// Register first, then handle permissions
-navigator.serviceWorker.register('/chess/sw.js')
-  .then((registration) => {
-    console.log('Service Worker ready');
-    
-    // Only set up the button/trigger AFTER the worker is ready
-    window.enableNotifications = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            try {
-                const token = await getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' });
-                await fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
-                    method: "POST",
-                    body: JSON.stringify({ action: "saveToken", token: token })
-                });
-                alert("Success!");
-            } catch (err) {
-                alert("Token error: " + err);
+        // Define the function globally so the button can find it
+        window.enableNotifications = async () => {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                try {
+                    const token = await getToken(messaging, { vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y' });
+                    await fetch("https://script.google.com/macros/s/AKfycbypTa6ZPmmP9UAW1dInVcXZP5ov5n9BF4UgMLmyPsv0n9VBqb3S5RctgkJWxY_tOfyu/exec", {
+                        method: "POST",
+                        body: JSON.stringify({ action: "saveToken", token: token })
+                    });
+                    alert("Notifications Enabled!");
+                } catch (err) {
+                    alert("Token error: " + err);
+                }
+            } else {
+                alert("Permission denied.");
             }
-        }
-    };
-  })
-  .catch((err) => alert("SW Registration failed: " + err));
+        };
+
+        navigator.serviceWorker.register('/chess/sw.js')
+            .then(() => console.log('Service Worker ready'))
+            .catch((err) => alert("SW Registration failed: " + err));
     </script>
 
     <script>
