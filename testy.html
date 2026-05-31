@@ -66,12 +66,15 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
     if(!title || !body) { alert("Title and Message required"); return; }
 
     try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbwbFIbf0qyE3DtI7dJeYmU-gHqfF5JmSPS9pGxKYwpEgRYIvorxBWaVeQ--_alDQhda/exec", {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "sendPush", title, body, url })
-        });
+        const resp = await fetch("https://script.google.com/macros/s/AKfycbyugU4ASq7GcibDyG_5JK_kvW9FKgWJ2lgMtEMWwx8fE2QSRP_DYkd1qAfoHPkQiuM/exec", {
+    method: "POST",
+    mode: "cors",
+    redirect: "follow",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "sendPush", title, body, url })
+});
+const result = await resp.json();
+console.log(result);
         
         // Read as text first to see what is actually coming back
         const rawText = await resp.text();
