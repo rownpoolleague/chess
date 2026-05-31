@@ -3,18 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGN File Viewer - Portrait</title>
+    <title>PGN File Viewer - Dark Theme</title>
     <style>
-        body { font-family: sans-serif; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        /* This styles the entire page background */
+        body { 
+            font-family: sans-serif; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background-color: #1a1a1a; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+
         .upload-section { margin-bottom: 20px; }
-        /* The container for the portrait view */
+
+        /* This styles the area directly around the iframe */
         .viewer-container { 
             width: 100%; 
             max-width: 400px; 
             aspect-ratio: 0.575; 
-            border: 1px solid black; 
+            border: 2px solid #444; /* Darker border */
+            background-color: #000000; /* Black background for the container */
+            padding: 5px; /* Creates a small frame effect */
         }
-        iframe { width: 100%; height: 100%; border: 0; }
+
+        iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: 0; 
+        }
     </style>
 </head>
 <body>
@@ -24,7 +42,6 @@
         <input type="file" id="pgnFile" accept=".pgn,.txt">
     </div>
 
-    <!-- Portrait Container -->
     <div class="viewer-container">
         <iframe name="cwvif_tfvswf" style='width:100%;height:100%;border:0'></iframe>
         <form id="cwvfm_tfvswf" method="post" action='https://caissa.com/bin/gameview' target="cwvif_tfvswf">
@@ -39,10 +56,7 @@
 
             const reader = new FileReader();
             reader.onload = function(event) {
-                const pgnContent = event.target.result;
-                
-                // Inject content and submit the form with the new IDs
-                document.getElementById('cwvip_tfvswf').value = pgnContent;
+                document.getElementById('cwvip_tfvswf').value = event.target.result;
                 document.getElementById('cwvfm_tfvswf').submit();
             };
             reader.readAsText(file);
