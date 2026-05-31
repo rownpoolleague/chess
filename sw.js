@@ -10,7 +10,31 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// --- YOUR EXISTING CODE GOES BELOW HERE ---
+// --- PUSH MESSAGE HANDLING ---
+messaging.onBackgroundMessage((payload) => {
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/chess/iconking.png',
+    data: { url: payload.data.url } // Store the URL here so we can use it on click
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// --- HANDLE NOTIFICATION CLICK ---
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data.url;
+
+  if (urlToOpen) {
+    event.waitUntil(
+      clients.openWindow(urlToOpen)
+    );
+  }
+});
+
+// --- YOUR EXISTING CACHE LOGIC ---
 
 const CACHE_NAME = 'sscc-v2';
 
@@ -36,12 +60,10 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Network First strategy: tries the network first, falls back to cache
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((response) => {
-        // If response is good, update the cache
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(e.request, responseClone);
@@ -49,7 +71,6 @@ self.addEventListener('fetch', (e) => {
         return response;
       })
       .catch(() => {
-        // If network fails, return from cache
         return caches.match(e.request);
       })
   );
