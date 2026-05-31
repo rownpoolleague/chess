@@ -1,3 +1,17 @@
+importScripts('https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBek60G1Ns_PVhODcp02H0S2jryhdUKFuQ",
+  projectId: "sscc-push",
+  messagingSenderId: "954838466310",
+  appId: "1:954838466310:web:d7ba03562b6c0b8db66887"
+});
+
+const messaging = firebase.messaging();
+
+// --- YOUR EXISTING CODE GOES BELOW HERE ---
+
 const CACHE_NAME = 'sscc-v2';
 
 self.addEventListener('install', (e) => {
