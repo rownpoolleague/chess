@@ -56,30 +56,29 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
     </div>
 
     <script>
-        async function broadcast() {
-            const title = document.getElementById("title").value;
-            const body = document.getElementById("body").value;
-            const url = document.getElementById("url").value;
-            
-            if(!title || !body) { alert("Title and Message required"); return; }
+async function broadcast() {
+    const title = document.getElementById("title").value;
+    const body = document.getElementById("body").value;
+    const url = document.getElementById("url").value;
+    
+    if(!title || !body) { alert("Title and Message required"); return; }
 
-            try {
-                const resp = await fetch("https://script.google.com/macros/s/AKfycbxbuhEgQh8Smu0N-agDlDw1ggLlcYYFmVTFAVZ8FwndRyBCNnaafdxeiKT_g54P_4rP/exec", {
-                    method: "POST",
-                    mode: "cors",
-                    redirect: "follow",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "sendPush", title, body, url })
-                });
-                
-                const result = await resp.json();
-                console.log("Success:", result);
-                alert("Broadcast status: " + (result.status || result.error || "Completed"));
-            } catch (err) {
-                console.error("Fetch Error details:", err);
-                alert("Error occurred. Check console.");
-            }
-        }
+    // Build the URL with parameters
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbz76yNHSwbFF6sOPdW4aX7upC7Skr8lhattyHcLO_pGJ3tKfyuV2aUPH3M2JMIrkzI/exec";
+    const params = new URLSearchParams({ action: "sendPush", title, body, url });
+
+    try {
+        const resp = await fetch(`${scriptUrl}?${params.toString()}`, {
+            method: "GET",
+            mode: "cors"
+        });
+        
+        const result = await resp.json();
+        alert("Broadcast status: " + (result.status || "Completed"));
+    } catch (err) {
+        alert("Error occurred. Check console.");
+    }
+}
     </script>
 </body>
 </html>
