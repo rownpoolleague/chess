@@ -66,7 +66,7 @@ footer { text-align: center; padding: 10px; margin-top: auto; }
     if(!title || !body) { alert("Title and Message required"); return; }
 
     try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbwCW_qCqRMtPMYcxpWJQZtbLDm-lpkDkXvw-_rURYcL75xgmgGi_7XbSttbLVDvXr14/exec", {
+        const resp = await fetch("https://script.google.com/macros/s/AKfycbyugU4ASq7GcibDyG_5JK_kvW9FKgWJ2lgMtEMWwx8fE2QSRP_DYkd1qAfoHPkQiuM/exec", {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "sendPush", title, body, url })
