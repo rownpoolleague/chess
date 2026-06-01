@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Club Main Menu</title>
+
     <style>
         * { box-sizing: border-box; }
         body {
@@ -46,8 +47,10 @@
         .footer-logo { max-width: 150px; opacity: 0.8; }
     </style>
 </head>
+
 <body>
 
+    <!-- ADMIN MODAL -->
     <div id="adminModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:9999;">
         <div style="background:#111; padding:30px; border-radius:10px; width:300px; border:2px solid #1e90ff; text-align:center;">
             <h2 style="color:white; margin-top:0;">Admin Login</h2>
@@ -56,6 +59,7 @@
         </div>
     </div>
 
+    <!-- MAIN MENU -->
     <div class="overlay">
         <h1>Main Menu</h1>
         
@@ -69,6 +73,8 @@
                 <a class="menu-button" href="viewer.html" onclick="goTo(event, this.href)">Load PGN</a>
                 <a class="menu-button" href="admin.html" onclick="goTo(event, this.href, true)">Admin</a>
                 <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
+
+                <!-- NOTIFICATION BUTTON -->
                 <button class="menu-button" onclick="enableNotifications()">Enable Notifications</button>
             </div>
         </div>
@@ -78,6 +84,7 @@
         <img src="iconking.png" alt="Club Logo" class="footer-logo">
     </footer>
 
+    <!-- FIREBASE + NOTIFICATION LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
         import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
@@ -94,75 +101,55 @@
         const app = initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
-      window.enableNotifications = async () => {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-        alert("Permission denied.");
-        return;
-    }
-
-    try {
-        const swReg = await navigator.serviceWorker.ready;
-
-        const token = await getToken(messaging, {
-            vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y',
-            serviceWorkerRegistration: swReg
-        });
-
-        if (!token) {
-            alert("Failed to get token.");
-            return;
-        }
-
-        // Save token to Apps Script
-        await fetch("https://script.google.com/macros/s/AKfycbxtJIpGdp9rPOt-YgTbS4dnswR2heLhreZdpK7eo6TDhjizZShmoMgsw2ww1G8pvRiz/exec", {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({ action: "saveToken", token })
-        });
-
-        // Subscribe to /topics/all
-        await fetch("https://iid.googleapis.com/iid/v1/" + token + "/rel/topics/all", {
-            method: "POST",
-            headers: {
-                "Authorization": "key=0f358ec0c7c5e96b8110006ce670a1f168d7b48d"
-            }
-        });
-
-        alert("Notifications Enabled!");
-
-    } catch (err) {
-        alert("Token error: " + err);
-        console.error(err);
-    }
-};
-
-                    
-                    // 2. Send to your script
-                    const response = await fetch("https://script.google.com/macros/s/AKfycbxVGzGs5qB3GRxypkLfpQMD1Hh9A5toI4EJ04jcN8X0iYJwTO7ZxvTeXeg0xAlBlb48/exec", {
-                        method: "POST",
-                        body: JSON.stringify({ action: "saveToken", token: token })
-                    });
-                    
-                    if (response.ok) {
-                        alert("Notifications Enabled!");
-                    } else {
-                        alert("Failed to save token to server.");
-                    }
-                } catch (err) {
-                    alert("Token error: " + err);
-                    console.error("Firebase Token Error:", err);
-                }
-            } else {
+        window.enableNotifications = async () => {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
                 alert("Permission denied.");
+                return;
+            }
+
+            try {
+                const swReg = await navigator.serviceWorker.ready;
+
+                const token = await getToken(messaging, {
+                    vapidKey: 'BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y',
+                    serviceWorkerRegistration: swReg
+                });
+
+                if (!token) {
+                    alert("Failed to get token.");
+                    return;
+                }
+
+                // Save token to Apps Script
+                await fetch("https://script.google.com/macros/s/AKfycbxtJIpGdp9rPOt-YgTbS4dnswR2heLhreZdpK7eo6TDhjizZShmoMgsw2ww1G8pvRiz/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({ action: "saveToken", token })
+                });
+
+                // Subscribe to /topics/all
+                await fetch("https://iid.googleapis.com/iid/v1/" + token + "/rel/topics/all", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "key=0f358ec0c7c5e96b8110006ce670a1f168d7b48d"
+                    }
+                });
+
+                alert("Notifications Enabled!");
+
+            } catch (err) {
+                alert("Token error: " + err);
+                console.error(err);
             }
         };
 
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/chess/sw.js')
             .then(() => console.log('Service Worker ready'))
             .catch((err) => alert("SW Registration failed: " + err));
     </script>
 
+    <!-- ADMIN + NAVIGATION -->
     <script>
         function goTo(event, url, isAdmin = false) {
             event.preventDefault();
@@ -178,21 +165,24 @@
         async function submitAdminPassword() {
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
+
             try {
                 const resp = await fetch("https://script.google.com/macros/s/AKfycbxtJIpGdp9rPOt-YgTbS4dnswR2heLhreZdpK7eo6TDhjizZShmoMgsw2ww1G8pvRiz/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
+
                 const data = await resp.json();
                 if (!data.ok) { alert("Incorrect password."); return; }
+
                 sessionStorage.setItem("adminAuth", "ok");
                 window.location.href = document.getElementById("adminModal").dataset.url;
-            } catch (err) { console.error(err); }
-        }
-        navigator.serviceWorker.register('sw.js')
-    .then(() => console.log("Service Worker Registered"))
-    .catch(err => console.error("SW Registration failed:", err));
 
+            } catch (err) {
+                console.error(err);
+            }
+        }
     </script>
+
 </body>
 </html>
