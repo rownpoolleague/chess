@@ -147,7 +147,7 @@
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
             try {
-                const resp = await fetch("https://script.google.com/macros/s/AKfycbxVGzGs5qB3GRxypkLfpQMD1Hh9A5toI4EJ04jcN8X0iYJwTO7ZxvTeXeg0xAlBlb48/exec", {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbxtJIpGdp9rPOt-YgTbS4dnswR2heLhreZdpK7eo6TDhjizZShmoMgsw2ww1G8pvRiz/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
