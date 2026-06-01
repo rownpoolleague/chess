@@ -171,6 +171,7 @@ async function broadcast() {
     try {
         const resp = await fetch("https://script.google.com/macros/s/AKfycbwNrKVXhk6gEJFKkEaLgcTRJF9r4CULVn15UIMpUMQf926Gje6-FcsNw84l2wbG8ox5/exec", {
             method: "POST",
+            mode: "cors"
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 action: "sendPush",
