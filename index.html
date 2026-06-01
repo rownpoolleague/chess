@@ -189,6 +189,10 @@
                 window.location.href = document.getElementById("adminModal").dataset.url;
             } catch (err) { console.error(err); }
         }
+        navigator.serviceWorker.register('sw.js')
+    .then(() => console.log("Service Worker Registered"))
+    .catch(err => console.error("SW Registration failed:", err));
+
     </script>
 </body>
 </html>
