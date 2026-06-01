@@ -1,63 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Club Main Menu</title>
-<style>
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100dvh; background-color: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-.form-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100dvh; background-color: #000; border: 4px solid #1e90ff; border-radius: 12px; background-clip: padding-box; display: flex; flex-direction: column; padding: 10px; }
-.overlay { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
-h1 { text-align: center; color: white; margin-top: 0; margin-bottom: 20px; font-size: 28px; }
-.menu-container { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.menu-button { display: block; margin: 0 auto; text-align: center; padding: 8px; background: #1e90ff; color: white; text-decoration: none; font-size: 18px; border-radius: 8px; font-weight: bold; width: 250px; cursor: pointer; border: none; }
-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #333; }
-footer { text-align: center; padding: 10px; margin-top: auto; }
-.footer-logo { max-width: 150px; height: auto; }
-</style>
-</head>
-<body>
-    <div class="form-wrapper">
-        <div class="overlay">
-            <h1>Tournament Menu</h1>
-            <div class="menu-container">
-                <input id="title" placeholder="Notification Title">
-                <input id="body" placeholder="Notification Message">
-                <input id="url" placeholder="Page URL">
-                <button class="menu-button" onclick="broadcast()">Send Broadcast</button>
-            </div>
-        </div>
-        <footer><img src="iconking.png" alt="Club Logo" class="footer-logo"></footer>
-    </div>
-    <script>
-        // SERVICE WORKER REGISTRATION
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker Registered:', reg))
-                .catch(err => console.error('Service Worker Registration Failed:', err));
+    <!-- Firebase (MODULAR) -->
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js"></script>
+
+    <link rel="manifest" href="/chess/manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Club Main Menu</title>
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0; font-family: Arial, sans-serif;
+            background-color: #000000; color: white;
         }
 
-        async function broadcast() {
-            const title = document.getElementById("title").value;
-            const body = document.getElementById("body").value;
-            const url = document.getElementById("url").value;
-            if(!title || !body) { alert("Title and Message required"); return; }
+        .overlay {
+            display: flex; flex-direction: column;
+            justify-content: center; padding: 20px 10px;
+        }
+        h1 { text-align: center; margin-bottom: 20px; font-size: 32px; }
 
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbwgE4v2DIXnBLWK0ITWssTtwTR-Qfb_hxCVc3uXExJwr3lmgQe7zg2hmlIXCqBZHKI/exec";
-            const params = new URLSearchParams({ action: "sendPush", title, body, url });
+        .link-card {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 90%;
+            background: #111;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .menu-container {
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .menu-button {
+            display: block; text-align: center; padding: 10px; 
+            background: #1e90ff; color: white; text-decoration: none; 
+            font-size: 20px; border-radius: 8px; font-weight: bold; 
+            width: 100%; cursor: pointer; transition: background 0.2s;
+            border: none;
+        }
+        .menu-button:hover { background: #187bcd; }
+
+        footer { text-align: center; padding: 20px; }
+        .footer-logo { max-width: 150px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <!-- ADMIN MODAL -->
+    <div id="adminModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:9999;">
+        <div style="background:#111; padding:30px; border-radius:10px; width:300px; border:2px solid #1e90ff; text-align:center;">
+            <h2 style="color:white; margin-top:0;">Admin Login</h2>
+            <input id="adminPass" type="password" placeholder="Password" style="width:100%; padding:10px; font-size:18px; margin-bottom:20px;">
+            <button onclick="submitAdminPassword()" style="width:100%; padding:10px; font-size:20px; background:#1e90ff; color:white; border:none; border-radius:6px;">Enter</button>
+        </div>
+    </div>
+
+    <div class="overlay">
+        <h1>Main Menu</h1>
+        
+        <div class="link-card">
+            <div class="menu-container">
+                <a class="menu-button" href="calendar.html" onclick="goTo(event, this.href)">Calendar</a>
+                <a class="menu-button" href="members.html" onclick="goTo(event, this.href)">SSCC Members</a>
+                <a class="menu-button" href="tournamentdata.html" onclick="goTo(event, this.href)">Pairings/Results</a>
+                <a class="menu-button" href="Clock.html" onclick="goTo(event, this.href)">Clock</a>
+                <a class="menu-button" href="submit.html" onclick="goTo(event, this.href)">Submit a Club Game</a>
+                <a class="menu-button" href="viewer.html" onclick="goTo(event, this.href)">Load PGN</a>
+                <a class="menu-button" href="admin.html" onclick="goTo(event, this.href, true)">Admin</a>
+                <a class="menu-button" href="testy.html" onclick="goTo(event, this.href)">Submit test</a>
+
+                <!-- NOTIFICATION BUTTON -->
+                <button class="menu-button" onclick="enableNotifications()">Enable Notifications</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <img src="iconking.png" alt="Club Logo" class="footer-logo">
+    </footer>
+
+    <!-- FIREBASE + NOTIFICATION LOGIC -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBek60G1Ns_PVhODcp02H0S2jryhdUKFuQ",
+            authDomain: "sscc-push.firebaseapp.com",
+            projectId: "sscc-push",
+            storageBucket: "sscc-push.firebasestorage.app",
+            messagingSenderId: "954838466310",
+            appId: "1:954838466310:web:d7ba03562b6c0b8db66887"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        async function enableNotifications() {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+                alert("Permission denied.");
+                return;
+            }
 
             try {
-                const resp = await fetch(scriptUrl + "?" + params.toString(), {
-                    method: "GET"
+                const swReg = await navigator.serviceWorker.ready;
+
+                const token = await messaging.getToken({
+                    vapidKey: "BAvXMdABPFn8frEfnMHIN00x5VImnSdUK4YTKUqc_V5ffdl-kDjisn_n1ePSzl_HP2H1KxJs6O7KnwbFPoiy03Y",
+                    serviceWorkerRegistration: swReg
                 });
-                const result = await resp.json();
-                alert("Broadcast status: " + JSON.stringify(result));
+
+                console.log("FCM Token:", token);
+
+                // Subscribe to topic
+                await fetch("https://iid.googleapis.com/iid/v1/" + token + "/rel/topics/all", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "key=0f358ec0c7c5e96b8110006ce670a1f168d7b48d"
+                    }
+                });
+
+                // Save token to Apps Script
+                await fetch("https://script.google.com/macros/s/AKfycbxCQm3SsxBsnEcB9KMOBk5zVtb1mDkAWRd9SAV8FKcm2zM7F6cxeFP0jTjzclDHo750/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "saveToken", token })
+                });
+
+                alert("Notifications Enabled!");
             } catch (err) {
                 console.error(err);
-                alert("Error occurred. Check console.");
+                alert("Error enabling notifications: " + err);
+            }
+        }
+
+        navigator.serviceWorker.register('/chess/sw.js')
+            .then(() => console.log("Service Worker Registered"))
+            .catch(err => alert("SW Registration failed: " + err));
+    </script>
+
+    <!-- ADMIN + NAVIGATION -->
+    <script>
+        function goTo(event, url, isAdmin = false) {
+            event.preventDefault();
+            if (isAdmin) {
+                const modal = document.getElementById("adminModal");
+                modal.style.display = "flex";
+                modal.dataset.url = url;
+                return;
+            }
+            window.location.href = url;
+        }
+
+        async function submitAdminPassword() {
+            const pass = document.getElementById("adminPass").value.trim();
+            if (!pass) return;
+
+            try {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbxCQm3SsxBsnEcB9KMOBk5zVtb1mDkAWRd9SAV8FKcm2zM7F6cxeFP0jTjzclDHo750/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "checkAdminPassword", password: pass })
+                });
+
+                const data = await resp.json();
+                if (!data.ok) {
+                    alert("Incorrect password.");
+                    return;
+                }
+
+                sessionStorage.setItem("adminAuth", "ok");
+                window.location.href = document.getElementById("adminModal").dataset.url;
+
+            } catch (err) {
+                console.error(err);
             }
         }
     </script>
+
 </body>
 </html>
