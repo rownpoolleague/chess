@@ -107,7 +107,7 @@
                     });
                     
                     // 2. Send to your script
-                    const response = await fetch("https://script.google.com/macros/s/AKfycbxCQm3SsxBsnEcB9KMOBk5zVtb1mDkAWRd9SAV8FKcm2zM7F6cxeFP0jTjzclDHo750/exec", {
+                    const response = await fetch("https://script.google.com/macros/s/AKfycbxVGzGs5qB3GRxypkLfpQMD1Hh9A5toI4EJ04jcN8X0iYJwTO7ZxvTeXeg0xAlBlb48/exec", {
                         method: "POST",
                         body: JSON.stringify({ action: "saveToken", token: token })
                     });
@@ -147,7 +147,7 @@
             const pass = document.getElementById("adminPass").value.trim();
             if (!pass) return;
             try {
-                const resp = await fetch("https://script.google.com/macros/s/AKfycbxCQm3SsxBsnEcB9KMOBk5zVtb1mDkAWRd9SAV8FKcm2zM7F6cxeFP0jTjzclDHo750/exec", {
+                const resp = await fetch("https://script.google.com/macros/s/AKfycbxVGzGs5qB3GRxypkLfpQMD1Hh9A5toI4EJ04jcN8X0iYJwTO7ZxvTeXeg0xAlBlb48/exec", {
                     method: "POST",
                     body: JSON.stringify({ action: "checkAdminPassword", password: pass })
                 });
