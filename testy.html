@@ -115,6 +115,11 @@ footer {
 }
 </style>
 </head>
+<script>
+navigator.serviceWorker.register('/chess/sw.js')
+    .then(() => console.log("Service Worker Registered"))
+    .catch(err => console.error("SW Registration failed:", err));
+</script>
 
 <body>
 
