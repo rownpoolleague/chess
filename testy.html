@@ -1,198 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Admin Panel</title>
-<link rel="manifest" href="manifest.json">
-
-<style>
-* { box-sizing: border-box; }
-
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100dvh;
-    background-color: #000;
-    overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.form-wrapper {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    height: 100dvh;
-    background-color: #000;
-    border: 4px solid #1e90ff;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-}
-
-.overlay {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 20px 10px;
-}
-
-h1 {
-    text-align: center;
-    color: white;
-    margin: 0 0 20px 0;
-    font-size: 32px;
-}
-
-.menu-container {
-    max-width: 500px;
-    margin: 0 auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.menu-button {
-    display: block;
-    margin: 0 auto;
-    text-align: center;
-    padding: 4px;
-    background: #1e90ff;
-    color: white;
-    text-decoration: none;
-    font-size: 24px;
-    border-radius: 8px;
-    font-weight: bold;
-    height: 36px;
-    line-height: 28px;
-    width: 250px;
-    cursor: pointer;
-}
-
-footer {
-    text-align: center;
-    padding: 10px 20px 20px 20px;
-    margin-top: auto;
-}
-
-.footer-logo {
-    max-width: 200px;
-    height: auto;
-}
-
-/* --- BROADCAST PANEL --- */
-#broadcastPanel {
-    display: none;
-    background: #111;
-    border: 2px solid #1e90ff;
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px auto 0 auto;
-    max-width: 500px;
-}
-
-#broadcastPanel input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-    border-radius: 6px;
-    border: 1px solid #333;
-    font-size: 18px;
-}
-
-#broadcastPanel button {
-    width: 100%;
-    padding: 10px;
-    font-size: 20px;
-    background: #1e90ff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-</style>
+    <title>PGN Viewer Upload</title>
+    <link rel="stylesheet" href="https://unpkg.com/@mliebelt/pgn-viewer/lib/pgn-viewer.css">
+    <script src="https://unpkg.com/@mliebelt/pgn-viewer/lib/pgn-viewer.js"></script>
 </head>
-
-
 <body>
 
-<div class="form-wrapper">
-    <div class="overlay">
-        <h1>Admin Panel</h1>
+    <input type="file" id="pgnFile" accept=".pgn">
+    <div id="board"></div>
 
-        <div class="menu-container">
-            <a class="menu-button" href="addplayer.html">Add Player</a>
-            <a class="menu-button" href="tournament.html">Start Tournament</a>
-            <a class="menu-button" href="index.html">Main Menu</a>
+    <script>
+        document.getElementById('pgnFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-            <!-- NEW BUTTON -->
-            <button class="menu-button" onclick="toggleBroadcast()">Send Broadcast</button>
-        </div>
-
-        <!-- HIDDEN BROADCAST PANEL -->
-        <div id="broadcastPanel">
-            <input id="title" placeholder="Notification Title">
-            <input id="body" placeholder="Notification Message">
-            <input id="url" placeholder="Click URL (optional)">
-            <button onclick="broadcast()">Send Notification</button>
-        </div>
-    </div>
-
-    <footer>
-        <img src="iconking.png" alt="Club Logo" class="footer-logo">
-    </footer>
-</div>
-
-<script>
-// Admin gatekeeper
-
-// Toggle broadcast panel
-function toggleBroadcast() {
-    const panel = document.getElementById("broadcastPanel");
-    panel.style.display = (panel.style.display === "none" || panel.style.display === "") 
-        ? "block" 
-        : "none";
-}
-
-// Send broadcast
-async function broadcast() {
-    const title = document.getElementById("title").value.trim();
-    const body = document.getElementById("body").value.trim();
-    const url = document.getElementById("url").value.trim();
-
-    if (!title || !body) {
-        alert("Title and Message are required");
-        return;
-    }
-
-    try {
-        const resp = await fetch("https://script.google.com/macros/s/AKfycbxtJIpGdp9rPOt-YgTbS4dnswR2heLhreZdpK7eo6TDhjizZShmoMgsw2ww1G8pvRiz/exec", {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({
-        action: "sendPush",
-        title,
-        body,
-        url
-    })
-});
-
-        const result = await resp.json();
-        alert("Broadcast sent!");
-    } catch (err) {
-        console.error(err);
-        alert("Error sending broadcast");
-    }
-}
-
-navigator.serviceWorker.register('sw.js')
-    .then(() => console.log("Service Worker Registered"))
-    .catch(err => console.error("SW Registration failed:", err));
-
-</script>
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pgnContent = e.target.result;
+                document.getElementById('board').innerHTML = "";
+                PGNViewer.loadPgn("board", {
+                    pgn: pgnContent,
+                    pieceStyle: "wikipedia",
+                    boardSize: "400"
+                });
+            };
+            reader.readAsText(file);
+        });
+    </script>
 
 </body>
 </html>
