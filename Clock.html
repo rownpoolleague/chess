@@ -10,7 +10,6 @@
         
         #view-clock { padding: 0; position: relative; overflow: hidden; height: 100dvh; width: 100vw; background: #000; }
         
-        /* Protects settings inputs from being obscured under physical phone notches */
         .clock-top-settings { 
             display: grid; 
             grid-template-columns: 1fr 1fr 1fr; 
@@ -33,7 +32,6 @@
         .delay-display { font-size: 1.8rem; color: var(--accent); font-weight: bold; height: 2rem; visibility: hidden; }
         .delay-active { visibility: visible; }
         
-        /* Time Input Fields styling */
         .time-container { display: flex; align-items: center; justify-content: center; font-size: 6rem; font-family: monospace; color: #333; line-height: 1; }
         .time-field { outline: none; -webkit-user-select: text; user-select: text; pointer-events: auto; min-width: 2ch; text-align: center; }
         .colon-separator { pointer-events: none; user-select: none; padding: 0 5px; }
@@ -42,10 +40,10 @@
         .clock-face.timed-out { background: var(--stop) !important; }
         .clock-face.timed-out .time-container { color: #fff !important; }
 
-        #clock-overlay { position: absolute; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 5px; width: 60px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
-        .side-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #333; }
-        .menu-btn { height: 70px; width: 50px; border: none; color: white; font-weight: 900; border-radius: 8px; cursor: pointer; background: #1e90ff; }
-        .side-btn span { display: block; transform: rotate(90deg); white-space: nowrap; font-size: 0.9rem; }
+        #clock-overlay { position: absolute; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 5px; width: 70px; display: flex; flex-direction: column; gap: 8px; z-index: 30; }
+        .side-btn, .menu-btn { height: 60px; width: 100%; border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .side-btn { background: #333; }
+        .menu-btn { background: #1e90ff; text-decoration: none; }
         #pause-btn { background: var(--go); }
         
         .unlock-zone { position: absolute; top: 0; bottom: 0; right: 0; width: 60px; z-index: 20; }
@@ -84,8 +82,8 @@
     </div>
     <div id="unlock-trigger" class="unlock-zone" onmousedown="startHold()" onmouseup="endHold()" ontouchstart="startHold()" ontouchend="endHold()"></div>
     <div id="clock-overlay">
-        <button id="reset-btn" class="side-btn" onclick="resetClock()"><span>RESET</span></button>
-        <button id="pause-btn" class="side-btn" onclick="armClock()"><span>START</span></button>
+        <button class="side-btn" onclick="resetClock()">RESET</button>
+        <button id="pause-btn" class="side-btn" onclick="armClock()">START</button>
         <a class="menu-btn" href="index.html">Menu</a>
     </div>
 </div>
@@ -97,21 +95,15 @@
     function handleTimeInput(player) {
         const minText = document.getElementById(`${player}-min`).innerText.trim().replace(/[^0-9]/g, '');
         const secText = document.getElementById(`${player}-sec`).innerText.trim().replace(/[^0-9]/g, '');
-        
         const mins = parseInt(minText, 10) || 0;
         const secs = parseInt(secText, 10) || 0;
-        
         timers[player] = (mins * 60) + secs;
     }
 
-    // Toggle editable based on whether the UI overlay is open
     function toggleEditability(enable) {
         document.querySelectorAll('.time-field').forEach(el => {
-            if (enable) {
-                el.setAttribute('contenteditable', 'true');
-            } else {
-                el.removeAttribute('contenteditable');
-            }
+            if (enable) el.setAttribute('contenteditable', 'true');
+            else el.removeAttribute('contenteditable');
         });
     }
 
@@ -121,18 +113,13 @@
         toggleEditability(false);
         document.getElementById('clock-overlay').classList.add('hidden-ui');
         document.getElementById('top-bar').classList.add('hidden-ui');
-
         const elem = document.documentElement;
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen().catch(() => {});
-        }
+        if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
     }
 
     function switchClock(nextPlayer, e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        // Do not allow clock switching if the menu is open
         if (!document.getElementById('clock-overlay').classList.contains('hidden-ui')) return;
-        
         if (active && timers[active] <= 0) return;
         
         if (!ticker) { 
@@ -183,7 +170,6 @@
         clearInterval(ticker); ticker = null; active = null; isArmed = false;
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
-        
         toggleEditability(true);
         document.getElementById('clock-overlay').classList.remove('hidden-ui');
         document.getElementById('top-bar').classList.remove('hidden-ui');
@@ -196,18 +182,15 @@
         holdTimer = setTimeout(() => { 
             const overlay = document.getElementById('clock-overlay');
             const isHidden = overlay.classList.contains('hidden-ui');
-            
             if (isHidden) {
-                // Open menu
                 if (ticker) { clearInterval(ticker); ticker = null; }
                 overlay.classList.remove('hidden-ui');
                 document.getElementById('top-bar').classList.remove('hidden-ui');
-                toggleEditability(true); // Allow editing
+                toggleEditability(true);
             } else {
-                // Close menu
                 overlay.classList.add('hidden-ui');
                 document.getElementById('top-bar').classList.add('hidden-ui');
-                toggleEditability(false); // Lock editing
+                toggleEditability(false);
                 if (isArmed && active && timers[active] > 0) startTicker();
             }
         }, 1500); 
