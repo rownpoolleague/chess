@@ -104,29 +104,48 @@
         timers[player] = (mins * 60) + secs;
     }
 
+    // Toggle editable based on whether the UI overlay is open
+    function toggleEditability(enable) {
+        document.querySelectorAll('.time-field').forEach(el => {
+            if (enable) {
+                el.setAttribute('contenteditable', 'true');
+            } else {
+                el.removeAttribute('contenteditable');
+            }
+        });
+    }
+
     function armClock() {
-        isArmed = true; active = null;
-        document.querySelectorAll('.time-field').forEach(el => el.removeAttribute('contenteditable'));
+        isArmed = true; 
+        active = null;
+        toggleEditability(false);
         document.getElementById('clock-overlay').classList.add('hidden-ui');
         document.getElementById('top-bar').classList.add('hidden-ui');
 
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen().catch(() => {});
-        } else if (elem.webkitRequestFullscreen) {
-            elem.webkitRequestFullscreen();
         }
     }
 
     function switchClock(nextPlayer, e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        if (!isArmed) return;
+        // Do not allow clock switching if the menu is open
         if (!document.getElementById('clock-overlay').classList.contains('hidden-ui')) return;
+        
         if (active && timers[active] <= 0) return;
-        if (!ticker) { active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0; startTicker(); }
-        else {
-            if (active && nextPlayer !== active) { timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0; document.getElementById(active + '-delay').classList.remove('delay-active'); }
-            active = nextPlayer; delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0;
+        
+        if (!ticker) { 
+            active = nextPlayer; 
+            delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0; 
+            startTicker(); 
+        } else {
+            if (active && nextPlayer !== active) { 
+                timers[active] += parseInt(document.getElementById('cfg-inc').value) || 0; 
+                document.getElementById(active + '-delay').classList.remove('delay-active'); 
+            }
+            active = nextPlayer; 
+            delayLeft = parseInt(document.getElementById('cfg-delay').value) || 0; 
         }
         document.querySelectorAll('.clock-face').forEach(c => c.classList.remove('active'));
         document.getElementById(nextPlayer + '-timer').classList.add('active');
@@ -152,10 +171,10 @@
         ['white','black'].forEach(p => {
             const m = Math.floor(timers[p]/60), s = timers[p]%60;
             if (document.activeElement !== document.getElementById(`${p}-min`)) {
-                document.getElementById(`${p}-min`).innerText = m < 10 ? '0' + m : m;
+                document.getElementById(`${p}-min`).innerText = m.toString().padStart(2, '0');
             }
             if (document.activeElement !== document.getElementById(`${p}-sec`)) {
-                document.getElementById(`${p}-sec`).innerText = s < 10 ? '0' + s : s;
+                document.getElementById(`${p}-sec`).innerText = s.toString().padStart(2, '0');
             }
         });
     }
@@ -165,32 +184,31 @@
         const base = (parseInt(document.getElementById('cfg-time').value) || 5) * 60;
         timers = { white: base, black: base };
         
-        document.querySelectorAll('.time-field').forEach(el => el.setAttribute('contenteditable', 'true'));
+        toggleEditability(true);
         document.getElementById('clock-overlay').classList.remove('hidden-ui');
         document.getElementById('top-bar').classList.remove('hidden-ui');
-        document.querySelectorAll('.clock-face').forEach(c => { c.classList.remove('timed-out'); c.classList.remove('active'); });
+        document.querySelectorAll('.clock-face').forEach(c => { c.classList.remove('timed-out', 'active'); });
         document.querySelectorAll('.delay-display').forEach(d => { d.classList.remove('delay-active'); d.innerText = "0"; });
         updateClock();
-
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(() => {});
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-        }
     }
 
     function startHold() { 
-        if (!isArmed) return;
         holdTimer = setTimeout(() => { 
             const overlay = document.getElementById('clock-overlay');
-            if (!overlay.classList.contains('hidden-ui')) {
-                overlay.classList.add('hidden-ui'); document.getElementById('top-bar').classList.add('hidden-ui');
-                if (active && timers[active] > 0) startTicker();
-            } else {
+            const isHidden = overlay.classList.contains('hidden-ui');
+            
+            if (isHidden) {
+                // Open menu
                 if (ticker) { clearInterval(ticker); ticker = null; }
-                overlay.classList.remove('hidden-ui'); document.getElementById('top-bar').classList.remove('hidden-ui');
+                overlay.classList.remove('hidden-ui');
+                document.getElementById('top-bar').classList.remove('hidden-ui');
+                toggleEditability(true); // Allow editing
+            } else {
+                // Close menu
+                overlay.classList.add('hidden-ui');
+                document.getElementById('top-bar').classList.add('hidden-ui');
+                toggleEditability(false); // Lock editing
+                if (isArmed && active && timers[active] > 0) startTicker();
             }
         }, 1500); 
     }
